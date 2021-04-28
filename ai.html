@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+
+      .el-tree {
+        background-color: transparent;
+      }
+      </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div style="width: 0.5%"></div>
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 9%">
+          <p style="font-size: 34px; color: #01c4f7">AI智能分析</p>
+        </div>
+        <div style="margin-left: 36%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div
+          style="
+            width: 15%;
+            height: 1000px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+            padding-left: 1%;
+            overflow: auto;
+          "
+        >
+          <p style="font-size: 26px; color: #00b1df; margin-top: 1%">
+            线路信息
+          </p>
+          <!-- 线路信息tree列表 -->
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+        <div
+          style="
+            width: 81%;
+            height: 1000px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+          "
+        >
+          <div v-show="departId">
+            <p
+              style="
+                font-size: 36px;
+                color: #fff;
+                margin-left: 40%;
+                margin-top: 30%;
+              "
+            >
+              该部门下暂无该设备
+            </p>
+          </div>
+          <div v-show="!departId">
+            <p
+              style="
+                text-align: center;
+                font-size: 26px;
+                color: #00b1df;
+                margin-top: 1%;
+                margin-bottom: 1%;
+              "
+            >
+              110kV达纳线64#
+            </p>
+            <div style="display: flex; width: 100%">
+              <div
+                style="
+                  width: 64%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  height: 450px;
+                  margin-left: 1%;
+                "
+                id="a_echar"
+              ></div>
+              <div
+                style="
+                  width: 33%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  height: 450px;
+                  margin-left: 1%;
+                "
+                id="a_echarts"
+              ></div>
+            </div>
+            <div style="display: flex; width: 100%; margin-top: 2%">
+              <div
+                style="
+                  width: 64%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  height: 450px;
+                  margin-left: 1%;
+                "
+                id="a_echat"
+              ></div>
+              <div
+                style="
+                  width: 33%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  height: 450px;
+                  margin-left: 1%;
+                "
+                id="a_echart"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        data: [],
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        departId: true,
+        getDepartid: "",
+        departTreeList: [],
+
+      },
+      created() {
+        this.getDepartID();
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        handleNodeClick(datas) {
+          // console.log(datas);
+          let that = this;
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: "",
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: "1568879795240",
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+        },
+        // 得到部门的树形数据
+        getdepart() {
+          let that = this;
+
+          let d = that.getDepartid.substr(2, 2);
+          let data = { pid: +d }; //+隐式转换成number
+
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/dept/tree",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+              let data = [];
+              data.push(res.data);
+              that.departTreeList = data;
+              // console.log(data);
+            },
+          });
+        },
+        getbar() {
+          var myCharts = echarts.init(document.getElementById("a_echart"));
+          var option = {
+            tooltip: {
+              trigger: "item",
+            },
+            title: {
+              text: "分析结果图",
+              x: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#00b1df",
+                fontSize: 23,
+              },
+            },
+            series: [
+              {
+                name: "设备比例",
+                type: "pie",
+                radius: ["50%", "80%"],
+                avoidLabelOverlap: false,
+                label: {
+                  show: false,
+                  position: "center",
+                },
+                itemStyle: {
+                  normal: {
+                    label: {
+                      //饼图图形上的文本标签
+                      show: true,
+                      position: "inner", //标签的位置
+                      textStyle: {
+                        fontWeight: 300,
+                        fontSize: 14, //文字的字体大小
+                        color: "#fff",
+                      },
+                      formatter: "{d}%",
+                    },
+
+                    labelLine: {
+                      show: false, //隐藏标示线
+                    },
+                  },
+                },
+
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: "20",
+                    fontWeight: "bold",
+                    color: "#fff",
+                  },
+                },
+                labelLine: {
+                  show: false,
+                },
+                data: [
+                  { value: 1048, name: "杆塔监测" },
+                  { value: 735, name: "布控装置" },
+                  { value: 580, name: "边坡位移" },
+                  { value: 484, name: "驱鸟器" },
+                  { value: 300, name: "螺丝松动" },
+                  { value: 300, name: "测温装置" },
+                  { value: 2000, name: "综合在线监测" },
+                ],
+              },
+            ],
+          };
+          myCharts.setOption(option);
+
+          var myCharts = echarts.init(document.getElementById("a_echar"));
+          var optio = {
+            title: {
+              text: "告警率",
+              x: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#00b1df",
+                fontSize: 23,
+              },
+            },
+            tooltip: {
+              trigger: "axis",
+              formatter: "{b0}<br/>{a0}: {c0}%<br />{a1}: {c1}%<br />",
+            },
+            legend: {
+              data: ["现在", "历史"],
+              right: 40,
+              textStyle: {
+                //图例文字的样式
+                color: "#fff",
+                fontSize: 16,
+              },
+            },
+            grid: {
+              left: "3%",
+              right: "4%",
+              bottom: "3%",
+              containLabel: true,
+            },
+            xAxis: {
+              type: "category",
+              boundaryGap: false,
+              //   data: [
+              //     "Jan-18",
+              //     "Feb-18",
+              //     "Mar-18",
+              //     "Apr-18",
+              //     "May-18",
+              //     "Jun-18",
+              //     "Jul-18",
+              //     "Aug-18",
+              //   ],
+            },
+            yAxis: {
+              type: "value",
+              axisLabel: {
+                show: true,
+                interval: "auto",
+                formatter: "{value}%",
+              },
+              show: true,
+            },
+            series: [
+              {
+                name: "历史",
+                type: "line",
+                stack: "总量",
+                smooth: true,
+                lineStyle: {
+                  width: 0,
+                },
+                showSymbol: false,
+                areaStyle: {
+                  opacity: 0.8,
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    {
+                      offset: 0,
+                      color: "rgba(128, 255, 165)",
+                    },
+                    {
+                      offset: 1,
+                      color: "rgba(1, 191, 236)",
+                    },
+                  ]),
+                },
+                emphasis: {
+                  focus: "series",
+                },
+                data: [
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1.5,
+                  1.5,
+                  1.5,
+                  1.5,
+                  1.5,
+                  1.5,
+                  1.6,
+                  1.8,
+                  1.8,
+                  2.5,
+                  2.1,
+                  2.5,
+                  2.5,
+                ],
+              },
+              {
+                name: "现在",
+                type: "line",
+                stack: "总量",
+                smooth: true,
+                lineStyle: {
+                  width: 0,
+                },
+                showSymbol: false,
+                areaStyle: {
+                  opacity: 0.8,
+                  color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                    {
+                      offset: 0,
+                      color: "rgba(0, 221, 255)",
+                    },
+                    {
+                      offset: 1,
+                      color: "rgba(77, 119, 255)",
+                    },
+                  ]),
+                },
+                emphasis: {
+                  focus: "series",
+                },
+                data: [
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  0,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1,
+                  1.5,
+                  1.6,
+                  1.5,
+                  1.8,
+                  1.5,
+                  1.1,
+                  1.5,
+                  1.5,
+                ],
+              },
+            ],
+          };
+          myCharts.setOption(optio);
+          var myCharts = echarts.init(document.getElementById("a_echarts"));
+          var options = {
+            tooltip: {
+              trigger: "item",
+            },
+            title: {
+              text: "在线率",
+              x: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#00b1df",
+                fontSize: 23,
+              },
+            },
+            legend: {
+              bottom: "5%",
+              left: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#fff",
+                fontSize: 16,
+              },
+            },
+            series: [
+              {
+                name: "访问来源",
+                type: "pie",
+                radius: ["40%", "70%"],
+                avoidLabelOverlap: false,
+                label: {
+                  show: false,
+                  position: "center",
+                },
+                itemStyle: {
+                  normal: {
+                    label: {
+                      //饼图图形上的文本标签
+                      show: true,
+                      position: "inner", //标签的位置
+                      textStyle: {
+                        fontWeight: 300,
+                        fontSize: 14, //文字的字体大小
+                        color: "#fff",
+                      },
+                      formatter: "{d}%",
+                    },
+
+                    labelLine: {
+                      show: false, //隐藏标示线
+                    },
+                  },
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: "26",
+                    fontWeight: "bold",
+                    color: "#fff",
+                  },
+                },
+                labelLine: {
+                  show: false,
+                },
+                data: [
+                  { value: 100, name: "离线率" },
+                  { value: 32, name: "在线率" },
+                ],
+              },
+            ],
+          };
+          myCharts.setOption(options);
+          var myCharts = echarts.init(document.getElementById("a_echat"));
+          var optionss = {
+            title: {
+              text: "故障率",
+              x: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#00b1df",
+                fontSize: 23,
+              },
+            },
+            tooltip: {
+              trigger: "axis",
+              formatter: "{b0}<br/>{a0}: {c0}%<br />{a1}: {c1}%<br />",
+            },
+            legend: {
+              data: ["现在", "历史"],
+              right: 40,
+              textStyle: {
+                //图例文字的样式
+                color: "#fff",
+                fontSize: 16,
+              },
+            },
+            grid: {
+              left: "3%",
+              right: "4%",
+              bottom: "3%",
+              containLabel: true,
+            },
+            xAxis: {
+              type: "category",
+              boundaryGap: false,
+              //   data: [
+              //     "Jan-18",
+              //     "Feb-18",
+              //     "Mar-18",
+              //     "Apr-18",
+              //     "May-18",
+              //     "Jun-18",
+              //     "Jul-18",
+              //     "Aug-18",
+              //   ],
+            },
+            yAxis: {
+              type: "value",
+              axisLabel: {
+                show: true,
+                interval: "auto",
+                formatter: "{value}%",
+              },
+              show: true,
+            },
+            series: [
+              {
+                name: "历史",
+                type: "line",
+                stack: "总量",
+                smooth: true,
+
+                data: [
+                  5,
+                  6,
+                  2,
+                  4,
+                  1,
+                  5,
+                  3,
+                  5,
+                  6,
+                  1.5,
+                  2.5,
+                  3.5,
+                  21.5,
+                  12.5,
+                  1.5,
+                  13.6,
+                  11.8,
+                  12.8,
+                  22.5,
+                  21.1,
+                  22.5,
+                  23.5,
+                ],
+              },
+              {
+                name: "现在",
+                type: "line",
+                stack: "总量",
+                smooth: true,
+
+                data: [
+                  6,
+                  6,
+                  5,
+                  4,
+                  3,
+                  8,
+                  6,
+                  1,
+                  8,
+                  2.5,
+                  25,
+                  35,
+                  2.5,
+                  2.5,
+                  12.5,
+                  11.6,
+                  14.8,
+                  18.8,
+                  22.5,
+                  29.1,
+                  1.5,
+                  13.5,
+                ],
+              },
+            ],
+          };
+          myCharts.setOption(optionss);
+        },
+      },
+      mounted() {
+        this.getbar();
+        this.getdepart();
+      },
+    });
+  </script>
+</html>

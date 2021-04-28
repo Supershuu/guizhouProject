@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+
+      .el-tree {
+        background-color: transparent;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 12%">
+          <p style="font-size: 34px; color: #01c4f7">GNSS</p>
+        </div>
+        <div style="margin-left: 31%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div
+          style="
+            width: 15%;
+            height: 1015px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+            padding-left: 1%;
+            overflow: auto;
+          "
+        >
+          <p style="font-size: 26px; color: #00b1df; margin-top: 1%">
+            线路信息
+          </p>
+          <!-- 线路信息tree列表 -->
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+
+        <div style="width: 83%">
+          <div style="display: flex">
+            <div
+              style="
+                width: 65%;
+                height: 500px;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                margin-left: 1.5%;
+              "
+              id="myplayer"
+              @click="open"
+            ></div>
+            <div
+              style="
+                width: 30%;
+                height: 500px;
+                margin-left: 1.5%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+              "
+            >
+              <div id="t_echarts" style="height: 500px"></div>
+            </div>
+          </div>
+          <div style="display: flex; margin-top: 0.8%">
+            <div
+              style="
+                width: 96.5%;
+                height: 500px;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                margin-left: 1.5%;
+              "
+            >
+              <div id="t_echart" style="height: 500px"></div>
+            </div>
+            <!-- <div
+              style="
+                width: 30%;
+                height: 500px;
+                margin-left: 1.5%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+              "
+            >
+              <div id="t_echars" style="height: 500px"></div>
+            </div> -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script src="./js/EZUIKit-JavaScript/ezuikit.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        data: [],
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        item: {},
+
+        getDepartid: "",
+        departTreeList: [],
+      },
+      created() {
+        this.getDepartID();
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        open() {
+          // alert("123");
+          ipcRenderer.send("openvideos", this.item);
+        },
+        getajax(url, data, callback) {
+          $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            success: function (res) {
+              //    console.log(res);
+              callback(res);
+            },
+            dataType: "json",
+          });
+        },
+
+        handleNodeClick(datas) {
+          // console.log(datas);
+          let that = this;
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: datas.line_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: datas.tower_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "DEVICE") {
+            let data = {
+              sn: datas.sn,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/get_gnss_device",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                // datas.child = res.data;
+                // console.log(res);
+                if (res.data.gnss_status == 0) {
+                  that.$message({
+                    message: "该设备不在线",
+                    type: "warning",
+                  });
+                } else if (res.data.device_serial_list == "") {
+                  that.$message({
+                    message: "该设备未绑定摄像头",
+                    type: "warning",
+                  });
+                } else {
+                  let deviceSerial = res.data.device_serial_list;
+                  that.item.deviceSerial = deviceSerial;
+                  that.$nextTick(() => {
+                    that.getajax(
+                      "http://www.cqset.com:3100/api/v2/token/accesstoken-get",
+                      {},
+                      function (res) {
+                        var decoder = new EZUIKit.EZUIPlayer({
+                          id: "myplayer",
+                          autoplay: true,
+                          url:
+                            "ezopen://open.ys7.com/" + deviceSerial + "/1.live",
+                          accessToken: res.data.accessToken,
+                          decoderPath: "./js/EZUIKit-JavaScript",
+                          width: 1030,
+                          height: 500,
+                        });
+                      }
+                    );
+                  });
+                  let mounth = new Date().getMonth() + 1;
+                  let mounths = "0" + mounth;
+                  let year = new Date().getFullYear() - 1;
+                  let endTime =
+                    new Date().getFullYear() +
+                    "-" +
+                    mounths +
+                    "-" +
+                    "04" +
+                    " " +
+                    "01" +
+                    ":" +
+                    "01" +
+                    ":" +
+                    "01";
+                  // console.log(startTime);
+                  let startTime =
+                    year +
+                    "-" +
+                    "0" +
+                    new Date().getMonth() +
+                    "-" +
+                    "04" +
+                    " " +
+                    "01" +
+                    ":" +
+                    "01" +
+                    ":" +
+                    "01";
+                  // let datas = {};
+                  // console.log(JSON.stringify(datas));
+                  that.getajax(
+                    "http://www.cqset.com:8081/api/v2/device/gnss_warning_count",
+                    {
+                      gnss_device_name: res.data.gnss_device_name,
+                      start: startTime,
+                      end: endTime,
+                    },
+                    function (res) {
+                      console.log(res);
+                      if (res.data.length == 0) {
+                        that.$message({
+                          message: "暂无告警信息",
+                          type: "warning",
+                        });
+                      } else {
+                        let time = [];
+                        let data = [];
+                        res.data.forEach((item) => {
+                          time.push(item.date);
+                          data.push(item.num);
+                        });
+                        var myCharts = echarts.init(
+                          document.getElementById("t_echarts")
+                        );
+                        var options = {
+                          title: {
+                            text: "告警统计图",
+                            x: "center",
+                            top: 15,
+                            textStyle: {
+                              //图例文字的样式
+                              color: "#00b1df",
+                              fontSize: 23,
+                            },
+                          },
+                          tooltip: {
+                            trigger: "axis",
+                            axisPointer: {
+                              // 坐标轴指示器，坐标轴触发有效
+                              type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                            },
+                          },
+                          grid: {
+                            left: "3%",
+                            right: "4%",
+                            bottom: "1%",
+                            containLabel: true,
+                          },
+                          xAxis: {
+                            type: "category",
+                            data: time,
+                          },
+                          yAxis: {
+                            type: "value",
+                            show: false,
+                            splitLine: {
+                              //网格线
+                              show: false,
+                            },
+                          },
+                          series: [
+                            {
+                              data: data,
+                              type: "bar",
+                              barWidth: 20,
+                              itemStyle: {
+                                color: "#00b1df",
+                              },
+                              label: {
+                                show: true,
+                                position: "top",
+                                formatter: "{c}条",
+                                textStyle: {
+                                  color: "#fff",
+                                  fontSize: 12,
+                                },
+                              },
+                            },
+                          ],
+                        };
+                        myCharts.setOption(options);
+                      }
+                    }
+                  );
+                  let name = res.data.gnss_device_name;
+                  let start = Date.parse(new Date()) - 648000000;
+                  let end = Date.parse(new Date());
+                  let x = [];
+                  let y = [];
+                  let z = [];
+                  let x_c = [];
+                  let y_c = [];
+                  let z_c = [];
+                  let time_data = [];
+                  that.getajax(
+                    "http://www.cqset.com:3100/api/v1/gnss/gnssData",
+                    {
+                      departID: this.getDepartid,
+                      startDate: start,
+                      endDate: end,
+                      gnssDeviceName: name,
+                    },
+                    function (res) {
+                      // console.log(res);
+                      if (res.msg == "该时间段没有数据") {
+                        that.$message({
+                          message: res.msg,
+                          type: "warning",
+                        });
+                        var myCharts = echarts.init(
+                          document.getElementById("t_echart")
+                        );
+                        var option = {
+                          title: {
+                            text: "GNSS折线图",
+                            x: "center",
+                            top: 30,
+                            textStyle: {
+                              //图例文字的样式
+                              color: "#00b1df",
+                              fontSize: 23,
+                            },
+                          },
+                          legend: {
+                            data: [
+                              "横向形变量",
+                              "纵向形变量",
+                              "垂直形变量",
+                              "横向累加形变量",
+                              "纵向累加形变量",
+                              "垂直累加形变量",
+                            ],
+                            selected: {
+                              线夹C相: true,
+                              线夹B相: true,
+                              线夹A相: true,
+                            },
+                            x: "center",
+                            textStyle: {
+                              //图例文字的样式
+                              color: "#fff",
+                              fontSize: 14,
+                            },
+                          },
+                          xAxis: {
+                            type: "category",
+                            data: time_data,
+                          },
+                          tooltip: {
+                            trigger: "axis",
+                          },
+                          yAxis: {
+                            type: "value",
+                          },
+                          series: [
+                            {
+                              name: "横向形变量",
+                              type: "line",
+                              stack: "横向形变量",
+                              data: x,
+                              smooth: true,
+                            },
+                            {
+                              name: "纵向形变量",
+                              type: "line",
+                              stack: "纵向形变量",
+                              data: y,
+                              smooth: true,
+                            },
+                            {
+                              name: "垂直形变量",
+                              type: "line",
+                              stack: "垂直形变量",
+                              data: z,
+                              smooth: true,
+                            },
+                            {
+                              name: "横向累加形变量",
+                              type: "line",
+                              stack: "横向累加形变量",
+                              data: x_c,
+                              smooth: true,
+                            },
+                            {
+                              name: "纵向累加形变量",
+                              type: "line",
+                              stack: "纵向累加形变量",
+                              data: y_c,
+                              smooth: true,
+                            },
+                            {
+                              name: "垂直累加形变量",
+                              type: "line",
+                              stack: "垂直累加形变量",
+                              data: z_c,
+                              smooth: true,
+                            },
+                          ],
+                        };
+                        myCharts.setOption(option);
+                      } else {
+                        res.data.list.x.forEach((item) => {
+                          x.push(item.data);
+                        });
+                        res.data.list1.y.forEach((item) => {
+                          y.push(item.data);
+                        });
+                        res.data.list2.z.forEach((item) => {
+                          z.push(item.data);
+                        });
+                        res.data.list3.xCumulative.forEach((item) => {
+                          x_c.push(item.data);
+                        });
+                        res.data.list4.yCumulative.forEach((item) => {
+                          y_c.push(item.data);
+                        });
+                        res.data.list5.zCumulative.forEach((item) => {
+                          z_c.push(item.data);
+                        });
+                        res.data.list.x.forEach((item) => {
+                          time_data.push(item.date);
+                        });
+
+                        // console.log(x, y, z, time_data);
+                        var myCharts = echarts.init(
+                          document.getElementById("t_echart")
+                        );
+                        var option = {
+                          title: {
+                            text: "GNSS折线图",
+                            x: "center",
+                            top: 30,
+                            textStyle: {
+                              //图例文字的样式
+                              color: "#00b1df",
+                              fontSize: 23,
+                            },
+                          },
+                          legend: {
+                            data: [
+                              "横向形变量",
+                              "纵向形变量",
+                              "垂直形变量",
+                              "横向累加形变量",
+                              "纵向累加形变量",
+                              "垂直累加形变量",
+                            ],
+                            selected: {
+                              线夹C相: true,
+                              线夹B相: true,
+                              线夹A相: true,
+                            },
+                            x: "center",
+                            textStyle: {
+                              //图例文字的样式
+                              color: "#fff",
+                              fontSize: 14,
+                            },
+                          },
+                          xAxis: {
+                            type: "category",
+                            data: time_data,
+                          },
+                          tooltip: {
+                            trigger: "axis",
+                          },
+                          yAxis: {
+                            type: "value",
+                          },
+                          series: [
+                            {
+                              name: "横向形变量",
+                              type: "line",
+                              stack: "横向形变量",
+                              data: x,
+                              smooth: true,
+                            },
+                            {
+                              name: "纵向形变量",
+                              type: "line",
+                              stack: "纵向形变量",
+                              data: y,
+                              smooth: true,
+                            },
+                            {
+                              name: "垂直形变量",
+                              type: "line",
+                              stack: "垂直形变量",
+                              data: z,
+                              smooth: true,
+                            },
+                            {
+                              name: "横向累加形变量",
+                              type: "line",
+                              stack: "横向累加形变量",
+                              data: x_c,
+                              smooth: true,
+                            },
+                            {
+                              name: "纵向累加形变量",
+                              type: "line",
+                              stack: "纵向累加形变量",
+                              data: y_c,
+                              smooth: true,
+                            },
+                            {
+                              name: "垂直累加形变量",
+                              type: "line",
+                              stack: "垂直累加形变量",
+                              data: z_c,
+                              smooth: true,
+                            },
+                          ],
+                        };
+                        myCharts.setOption(option);
+                      }
+                    }
+                  );
+                }
+              },
+            });
+          }
+        },
+
+        getdepart() {
+          let that = this;
+
+          let d = that.getDepartid.substr(2, 2);
+          let data = { pid: +d }; //+隐式转换成number
+
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/dept/tree",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+              let data1 = [];
+              data1.push(res.data);
+              that.departTreeList = data1;
+              // console.log(data);
+            },
+          });
+        },
+      },
+      mounted() {
+        // this.getbar();
+        this.getdepart();
+      },
+    });
+  </script>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <!-- 引入axam.css样式表 -->
+    <link rel="stylesheet" href="./css/axam.css" /> 
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+      
+    .el-tree {
+        background-color: transparent;
+      }
+      </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <!-- 最上面一排 -->
+      <header
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+          margin-bottom: 40px;
+        "
+      >
+        <div style="width: 0.5%"></div>
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 9%">
+          <p style="font-size: 34px; color: #01c4f7">考试情况统计</p>
+        </div>
+        <div style="margin-left: 32%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </header>
+
+      <div style="display: flex">
+        <!-- 下边左侧 -->
+        <div class="left-box">
+
+          <!-- <p class="title">
+            部门
+          </p> -->
+          <!-- <div  class="left-box-b"> 
+          </div> -->
+          <!-- 线路信息tree列表 -->
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+            
+          </el-tree>
+        </div>
+        <!-- <div class="left-time">
+          <el-date-picker
+          v-model="value1"
+          type="datetime"
+          placeholder="选择日期时间">
+        </el-date-picker>
+        <el-button plain  icon="el-icon-search"></el-button>
+        </div> -->
+        
+        <!-- 中间的盒子 -->
+        <div class="middle-box">
+
+          <p class="title-text">
+            人员考试统计情况
+          </p>
+          <div class="middle-table">
+            <el-table
+            :data="tableData"
+            border
+            height="860"
+            style="width: 100%;">
+            <el-table-column prop="depart_name" label="部门"  width="150"> </el-table-column>
+            <el-table-column prop="subject_name" label="专业" width="150"> </el-table-column>
+            <el-table-column prop="name" label="人员" width="95"> </el-table-column>
+            <el-table-column prop="exam_line" label="成绩" width="80"> </el-table-column>
+            <el-table-column prop="create_time" label="时间 ">
+               </el-table-column>
+        </el-table>
+          </div>
+         
+        
+        </div>
+        <!-- 右边 -->
+        <div class="right-box">
+          <div class="right-box-t">
+            <p class="title-text">
+              过关人数统计
+            </p>
+            <div id="right-top"></div>
+          </div>
+
+          <div class="right-box-b">
+            <p class="title-text">
+              学习时间统计
+            </p>
+            <div id="right-bottom"></div>
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        defaultProps: {
+              children: "child",
+              label: "name",
+            },
+        baseUrl:'http://www.cqset.com:8081/api',
+        value1: '',
+        getDepartid: "",
+        departTreeList: [],
+        tableData: [],
+        params:{
+          page: 1,
+            size: 1000,
+            sort: "desc",
+            depart_id_alter:"1/",
+        },
+        passNum:[],
+        subjectName:[],
+        userTotal:[],
+
+        totalTime:[],
+        userNum:[],
+        departName:[],
+
+      },
+      created() {
+        this.getDepartID();
+        this.getExamList()
+      },
+      mounted() {
+        this.getdepart();
+         this.getGraphList()
+        this.getLianXi()
+        
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        // 返回
+        back() {
+          ipcRenderer.send("openindex");
+        },
+
+        rTime(val) {
+            var created_at = val.replace("T", " ");
+            var time = created_at.replace("+08:00", " ");
+            return time
+        },
+        // 
+        handleNodeClick(datas) {
+          // console.log(datas);
+          let that = this;
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          console.log(datas)
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: datas.line_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: datas.tower_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+        },
+        
+        // 得到部门的树形数据
+        getdepart() {
+          let that = this;
+
+          let d =  this.getDepartid.split('/')
+          let dd = d[d.length-2]
+          let D = parseInt(dd);
+          let data = { pid: D }; //
+
+          $.ajax({
+            type: "POST",
+            url: that.baseUrl + '/v2/dept/tree',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              if(res.code === 200){
+                let data = [];
+              data.push(res.data);
+              that.departTreeList = data;
+              }
+
+            },
+          });
+        },
+      // 考试情况统计表格
+        getExamList(){
+          let that = this;
+          let URL = this.baseUrl + '/v2/exam/user_exam_list'
+         
+          $.ajax({
+            type: "POST",
+            url: URL,
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(that.params),
+            success: function (res) {
+              if(res.code === 200){
+                res.data.forEach(item => {
+                  item.create_time =  that.rTime(item.create_time)
+                })
+                that.tableData = res.data
+
+              }else {
+
+              }
+            },
+          });
+        },
+      // 请求过关人数数据
+        getGraphList() {
+          let that = this;
+          // 人数过关
+          $.ajax({
+            type: "POST",
+            url: that.baseUrl + '/v2/exam/subject_pass_count',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(that.params),
+            success: function (res) {
+              if(res.code === 200){
+                res.data.forEach(item => {
+                  that.subjectName.push(item.subject_name)
+                  that.userTotal.push(item.user_total)//总人数
+                  that.passNum.push(item.pass_num)//通过人数
+                });
+                that.getGraphPass()
+              }
+            },
+            
+          });
+        },
+        // 请求练习时间数据
+        getLianXi(){
+          let that = this
+             // 练习时间
+          $.ajax({
+            type: "POST",
+            url: that.baseUrl + '/v2/exam/depart_test_time',
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(that.params),
+            success: function (res) {
+              if(res.code === 200){
+               
+                let minuteTime = 0 //分
+                let minuteTime2 = 0 //分
+                let hourTime = 0 //小时
+                let hourTime2 = 0 //小时
+                res.data.forEach(item => {
+                  if(item.total_time > 60){
+                   //获取分钟，除以60取整数，得到整数分钟 Math.floor向下取整
+                    minuteTime = Math.floor(item.total_time / 60); //总时间
+                    minuteTime2 = Math.floor(item.user_num / 60); //平均时间
+                    if(minuteTime > 60) {
+                        //获取小时，获取分钟除以60，得到整数小时
+                        hourTime = Math.floor(minuteTime / 60);
+                        hourTime2 = Math.floor(minuteTime2 / 60);
+                    }
+                  }
+                  // let minuteTime = Math.floor((item.total_time/60) < 0)
+                  that.totalTime.push(minuteTime)//总时间
+                  that.userNum.push(minuteTime2)
+                  that.departName.push(item.depart_name)
+                 
+                });
+                that.getGraphLianXi()
+
+              }else {
+
+              }
+            },
+          });
+        },
+       
+       
+       
+        // 过关人数统计图
+        getGraphPass() {
+          let that = this
+
+          let grids = {
+            left: '5%',
+            right: '5%',
+            bottom: '5%',
+            top: '10%',
+            containLabel: true
+          }
+         
+          var myCharts1 = echarts.init(document.getElementById("right-top"));
+          var option1 = {
+            backgroundColor: 'transparent',
+            // 控制图表上下左右的空白尺寸
+              grid: grids,
+
+              tooltip: {
+                  trigger: 'axis',
+                  axisPointer: {
+                      type: 'none'
+                  },
+                  // formatter: '{b}<br/>{a0}:{c0}<br />{a1}:{c1}',
+                  // formatter: function(params) {
+                  //   console.log(params)
+                  //     return params[0].name + '<br/>' +
+                  //         "<span style='display:inline-block;margin-right:5px;border-radius:10px;width:9px;height:9px;background-color:rgba(36,207,233,0.9)'></span>"
+                         
+                  // }
+              },
+              legend: {
+                          top: '1%',
+                          right: '5%',
+                          itemWidth: 20,
+                          itemHeight: 5,
+                          // itemGap: 343,
+                          textStyle: {
+                              color: '#ccc',
+                              fontSize: 20,
+                          },
+                          data: ['过关人数']
+                      },
+             
+              xAxis: {
+                  show: false,
+                  type: 'value'
+              },
+              yAxis: [{
+                  type: 'category',
+                  inverse: true,
+                  axisLabel: {
+                      show: true,
+                      textStyle: {
+                          color: '#fff'
+                      },
+                  },
+                  splitLine: {
+                      show: false
+                  },
+                  axisTick: {
+                      show: false
+                  },
+                  axisLine: {
+                      show: false
+                  },
+                  data: that.subjectName,//专业一 专业二
+                  // data: ["pic", "土建专业", "变电专业", "变电", "配电专业"],//专业一 专业二
+              },
+               {
+                  type: 'category',
+                  inverse: true,
+                  axisTick: 'none',
+                  axisLine: 'none',
+                  show: true,
+                  axisLabel: {
+                      textStyle: {
+                          color: '#ffffff',
+                          fontSize: '12'
+                      },
+                      // formatter: function(value) {
+                      //     if (value >= 10000) {
+                      //         return (value / 10000).toLocaleString();
+                      //     } else {
+                      //         return value.toLocaleString();
+                      //     }
+                      // },
+                  },
+                  data:  that.passNum,//通过人数
+                  // data:  [0,22,9,0,38],//通过人数/
+              }],
+              series: [{
+                      name: '通过人数',
+                      type: 'bar',
+                      zlevel: 1,
+                      itemStyle: {
+                          normal: {
+                              barBorderRadius: 30,
+                              color: '#07ffa5'
+                          },
+                      },
+                      barWidth: 20,
+                      data: this.passNum,//通过人数
+                      // label: {
+                      //   normal: {
+                      //       show: true,
+                      //       position: 'insideRight',
+                      //       formatter: '{c}%'
+                      //   }
+                      // }
+
+                  }, 
+                  {  
+                      name: '总人数',
+                      type: 'bar',
+                      barWidth: 20,
+                      barGap: '-100%',
+                      data: that.userTotal,
+                      // data: [40,22,9,20,38],
+                      itemStyle: {
+                          normal: {
+                              color: '#fff',
+                              barBorderRadius: 30,
+                          }
+                      },
+                  },
+              ]
+          };
+         
+          myCharts1.setOption(option1);
+        },
+
+
+
+        // 练习统计图
+        getGraphLianXi() {
+          let that = this
+
+          let grids = {
+            left: '3%',
+            right: '5%',
+            bottom: '5%',
+            top: '8%',
+            containLabel: true
+          }
+         
+          var myCharts2 = echarts.init(document.getElementById("right-bottom"));
+          var option2 = {
+              backgroundColor: 'transparent',
+              grid: grids,
+              title: {
+                  text: '分钟数',
+                  textStyle: {
+                  color: '#fff',
+                  fontStyle: 'normal',
+                  fontFamily: '微软雅黑',
+                  fontSize: 12,
+                }
+              },
+              tooltip: { //提示框组件
+                trigger: 'axis',
+                // formatter: '{b}<br />{a0}: {c0}<br />{a1}: {c1}',
+                axisPointer: {
+                  type: 'shadow',
+                  label: {
+                    backgroundColor: '#6a7985'
+                  }
+                },
+                textStyle: {
+                  color: '#fff',
+                  fontStyle: 'normal',
+                  fontFamily: '微软雅黑',
+                  fontSize: 12,
+                }
+              },
+           
+            legend: {//图例组件，颜色和名字
+                  right:'10%',
+              top:'1%',
+              itemGap: 16,
+              itemWidth: 18,
+              itemHeight: 10,
+                  data:[{ name:'平均时间'},{name:'总时间'}],
+                  textStyle: {
+                color: '#a8aab0',
+                fontStyle: 'normal',
+                fontFamily: '微软雅黑',
+                fontSize: 12,            
+                  }
+              },
+              
+            xAxis: [
+              {
+                type: 'category',
+              //	boundaryGap: true,//坐标轴两边留白
+              data: that.departName,
+                axisLabel: { //坐标轴刻度标签的相关设置。
+                  // interval: 0,//设置为 1，表示『隔一个标签显示一个标签』
+                //	margin:15,
+                  textStyle: {
+                    color: '#078ceb',
+                    fontStyle: 'normal',
+                    fontFamily: '微软雅黑',
+                    fontSize: 12,
+                  },
+                  rotate:40,
+                },
+                axisTick:{//坐标轴刻度相关设置。
+                  show: false,
+                },
+                axisLine:{//坐标轴轴线相关设置
+                  lineStyle:{
+                    color:'#fff',
+                    opacity:0.2
+                  }
+                },
+                splitLine: { //坐标轴在 grid 区域中的分隔线。
+                  show: false,
+                }
+              }
+            ],
+            yAxis: [
+              {
+                type: 'value',
+                splitNumber: 10,
+                axisLabel: {
+                  textStyle: {
+                    color: '#a8aab0',
+                    fontStyle: 'normal',
+                    fontFamily: '微软雅黑',
+                    fontSize: 12,
+                  }
+                },
+                axisLine:{
+                  show: false
+                },
+                axisTick:{
+                  show: false
+                },
+                splitLine: {
+                  show: true,
+                  lineStyle: {
+                    color: ['#fff'],
+                    opacity:0.06
+                  }
+                }
+
+              }
+            ],
+              series : [
+                  {
+                      name:'平均时间',
+                      type:'bar',
+                      data:that.userNum,
+                      barWidth: 10,
+                      barGap:0,//柱间距离
+
+                      label: {//图形上的文本标签
+                          normal: {
+                            show: true,
+                            position: 'top',
+                            textStyle: {
+                                color: '#a8aab0',
+                                fontStyle: 'normal',
+                                fontFamily: '微软雅黑',
+                                fontSize: 12,   
+                            },
+                          },
+                      },
+
+                    itemStyle: {
+                          normal: {
+                              show: true,
+                              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                  offset: 0,
+                                  color: '#5768EF'
+                              }, {
+                                  offset: 1,
+                                  color: '#5768EF'
+                              }]),
+                              barBorderRadius: 50,
+                              borderWidth: 0,
+                          }
+                      },
+                  },
+                  {
+                      name:'总时间',
+                      type:'bar',
+                      data:that.totalTime,
+                      barWidth: 10,
+                      barGap:1,//柱间距离
+
+                      label: {//图形上的文本标签
+                          normal: {
+                            show: true,
+                            position: 'top',
+                            textStyle: {
+                                color: '#a8aab0',
+                                fontStyle: 'normal',
+                                fontFamily: '微软雅黑',
+                                fontSize: 12,   
+                            },
+                          },
+                      },
+                      itemStyle: {
+                          normal: {
+                              show: true,
+                              color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [{
+                                  offset: 0,
+                                  color: '#69CBF2'
+                              }, {
+                                  offset: 1,
+                                  color: '#69CBF2'
+                              }]),
+                              barBorderRadius: 50,
+                              borderWidth: 0,
+                          }
+                      },
+                  }
+              ]
+          };
+          
+          myCharts2.setOption(option2);
+        
+        },
+
+      },
+     
+    });
+  </script>
+</html>

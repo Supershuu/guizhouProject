@@ -1,0 +1,95 @@
+.title {
+    font-size: 26px; 
+    color: #00b1df;
+    margin-left: 3%;
+}
+.title-text {
+    font-size: 26px; 
+    color: #00b1df;
+    text-align: center; 
+   
+}
+
+.left-box,
+.middle-box {
+    height: 950px;
+    border: 1px solid #00b1df;
+    border-radius: 8px;
+    box-shadow: 0 0 10px #00b1df inset; /*inset  内部阴影*/
+    margin-left: 1%;
+    padding-top: 5px;
+}
+
+/* 左------------------- */
+.left-box {
+    width: 18%;
+    overflow: auto;
+    /*父盒子*/
+    /* text-align: center;  */
+}
+
+/* 中------------------- */
+.middle-box {
+    width: 40%;
+    text-align: center
+}  
+.middle-table {
+    width: 95%;
+    margin: 15px auto;
+}
+/* 覆盖表格的边框颜色 */
+.el-table--border::after, .el-table--group::after, .el-table::before {
+    background-color: #00eaeb !important;
+    z-index: 1;
+}
+.el-table--border{
+    border: 1px solid #00eaeb !important;
+}
+.el-table th.is-leaf{
+    border-bottom: 1px solid #00eaeb !important;
+}
+
+.el-table--border th {
+    border-right: 1px solid #00eaeb !important;
+}
+/* 覆盖表格和表头的字体颜色 */
+.el-table,
+.el-table thead {
+    color:#00eaeb !important;
+}
+
+/* 右---------------------- */
+.right-box {
+  /* display: flex; */
+    width: 40%;
+    height: 965px;
+        margin-right: 1%;
+        /* border: 1px solid #00b1df; */
+        /* border-radius: 8px; */
+        /* inset  内部阴影 */
+        /* box-shadow: 0 0 10px #00b1df inset;  */
+        margin-left: 1%;
+       
+        text-align: center;
+  }
+.right-box-t,
+.right-box-b {
+    width:99%;
+    height: 48%;
+    padding-top: 5px;
+    margin: 0 auto;
+    border: 1px solid #00b1df;
+        border-radius: 8px;
+        /* inset  内部阴影 */
+        box-shadow: 0 0 10px #00b1df inset; 
+} 
+.right-box-t {
+    margin-bottom: 2%;
+} 
+
+#right-top,
+#right-bottom {
+    width: 100%;
+    height: 93%;
+    /* background-color: pink; */
+}

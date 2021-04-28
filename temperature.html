@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+.el-tree {
+        background-color: transparent;
+      }
+
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 10%">
+          <p style="font-size: 34px; color: #01c4f7">无线测温</p>
+        </div>
+        <div style="margin-left: 36%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div
+          style="
+            width: 15%;
+            height: 1015px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+            padding-left: 1%;
+            overflow: auto;
+          "
+        >
+          <p style="font-size: 26px; color: #00b1df; margin-top: 1%">
+            线路信息
+          </p>
+          <!-- 线路信息tree列表 -->
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+        <div style="width: 83%">
+          <div v-show="departId">
+            <p
+              style="
+                font-size: 36px;
+                color: #fff;
+                margin-left: 40%;
+                margin-top: 30%;
+              "
+            >
+              该部门下暂无该设备
+            </p>
+          </div>
+          <div v-show="!departId">
+            <div style="display: flex">
+              <div
+                style="
+                  width: 65%;
+                  height: 500px;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  margin-left: 1.5%;
+                "
+              >
+                <div style="margin: 0.5% 0 0 0.5%">
+                  <el-button size="mini" type="primary" @click="search(1)"
+                    >最近一天</el-button
+                  >
+                  <el-button size="mini" type="primary" @click="search(2)"
+                    >最近三天</el-button
+                  >
+                  <el-button size="mini" type="primary" @click="search(3)"
+                    >最近一周</el-button
+                  >
+                </div>
+                <div id="t_echart" style="height: 450px"></div>
+              </div>
+              <div
+                style="
+                  width: 30%;
+                  height: 500px;
+                  margin-left: 1.5%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                "
+              >
+                <div id="t_echarts" style="height: 500px"></div>
+              </div>
+            </div>
+            <div style="display: flex; margin-top: 0.8%">
+              <div
+                style="
+                  width: 65%;
+                  height: 500px;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                  margin-left: 1.5%;
+                "
+              >
+                <div id="t_echar" style="height: 473px"></div>
+              </div>
+              <div
+                style="
+                  width: 30%;
+                  height: 500px;
+                  margin-left: 1.5%;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 5px #00b1df;
+                "
+              >
+                <div id="t_echars" style="height: 473px"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        departId: true,
+        getDepartid: "",
+        departTreeList: [],
+      },
+      created() {
+        this.getDepartID();
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        search(val) {
+          if (val == 1) {
+            echarts.init(document.getElementById("t_echart")).dispose();
+            let start = new Date(new Date().toLocaleDateString()).getTime();
+            let end = Date.parse(new Date());
+            let power_data = [];
+            let x_data = [];
+            let y_data = [];
+            let time_data = [];
+            let that = this;
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/new/datalist",
+              {
+                towerID: "b80cf0c0-61db-11eb-ab6b-95550a095a03",
+                startTime: start,
+                endTime: end,
+              },
+              function (res) {
+                // console.log(res);
+                if (res.data.msg == "该时间段没有数据") {
+                  this.$message({
+                    message: res.data.msg,
+                    type: "warning",
+                  });
+                } else {
+                  res.data.list[0].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    power_data.push(item);
+                  });
+
+                  res.data.list[1].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    x_data.push(item);
+                  });
+                  res.data.list[2].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    y_data.push(item);
+                  });
+                  res.data.list[0].timeList.forEach((item) => {
+                    time_data.push(item);
+                  });
+                  var myCharts = echarts.init(
+                    document.getElementById("t_echart")
+                  );
+                  var option = {
+                    title: {
+                      text: "无线测温折线图",
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    tooltip: {
+                      // trigger: "axis"
+                      trigger: "item",
+                    },
+                    legend: {
+                      data: ["线夹C相", "线夹B相", "线夹A相"],
+                      selected: {
+                        线夹C相: true,
+                        线夹B相: true,
+                        线夹A相: true,
+                      },
+                      right: 40,
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 16,
+                      },
+                    },
+                    grid: {
+                      left: "3%",
+                      right: "4%",
+                      bottom: "3%",
+                      containLabel: true,
+                    },
+
+                    xAxis: {
+                      type: "category",
+                      boundaryGap: false,
+                      data: time_data,
+                    },
+                    yAxis: {},
+                    series: [
+                      {
+                        name: "线夹C相",
+                        type: "line",
+                        stack: "线夹C相",
+                        data: x_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹B相",
+                        type: "line",
+                        stack: "线夹B相",
+                        data: y_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹A相",
+                        type: "line",
+                        stack: "线夹A相",
+                        data: power_data,
+                        smooth: true,
+                      },
+                    ],
+                  };
+
+                  myCharts.setOption(option);
+                }
+              }
+            );
+          }
+          if (val == 2) {
+            echarts.init(document.getElementById("t_echart")).dispose();
+            let start = Date.parse(new Date()) - 259200000;
+            let end = Date.parse(new Date());
+            let power_data = [];
+            let x_data = [];
+            let y_data = [];
+            let time_data = [];
+            let that = this;
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/new/datalist",
+              {
+                towerID: "b80cf0c0-61db-11eb-ab6b-95550a095a03",
+                startTime: start,
+                endTime: end,
+              },
+              function (res) {
+                // console.log(res);
+                if (res.data.msg == "该时间段没有数据") {
+                  this.$message({
+                    message: res.data.msg,
+                    type: "warning",
+                  });
+                } else {
+                  res.data.list[0].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    power_data.push(item);
+                  });
+
+                  res.data.list[1].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    x_data.push(item);
+                  });
+                  res.data.list[2].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    y_data.push(item);
+                  });
+                  res.data.list[0].timeList.forEach((item) => {
+                    time_data.push(item);
+                  });
+                  var myCharts = echarts.init(
+                    document.getElementById("t_echart")
+                  );
+                  var option = {
+                    title: {
+                      text: "无线测温折线图",
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    tooltip: {
+                      // trigger: "axis"
+                      trigger: "item",
+                    },
+                    legend: {
+                      data: ["线夹C相", "线夹B相", "线夹A相"],
+                      selected: {
+                        线夹C相: true,
+                        线夹B相: true,
+                        线夹A相: true,
+                      },
+                      right: 40,
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 16,
+                      },
+                    },
+                    grid: {
+                      left: "3%",
+                      right: "4%",
+                      bottom: "3%",
+                      containLabel: true,
+                    },
+
+                    xAxis: {
+                      type: "category",
+                      boundaryGap: false,
+                      data: time_data,
+                    },
+                    yAxis: {},
+                    series: [
+                      {
+                        name: "线夹C相",
+                        type: "line",
+                        stack: "线夹C相",
+                        data: x_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹B相",
+                        type: "line",
+                        stack: "线夹B相",
+                        data: y_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹A相",
+                        type: "line",
+                        stack: "线夹A相",
+                        data: power_data,
+                        smooth: true,
+                      },
+                    ],
+                  };
+
+                  myCharts.setOption(option);
+                }
+              }
+            );
+          }
+          if (val == 3) {
+            echarts.init(document.getElementById("t_echart")).dispose();
+            let start = Date.parse(new Date()) - 604800000;
+            let end = Date.parse(new Date());
+            let power_data = [];
+            let x_data = [];
+            let y_data = [];
+            let time_data = [];
+            let that = this;
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/new/datalist",
+              {
+                towerID: "b80cf0c0-61db-11eb-ab6b-95550a095a03",
+                startTime: start,
+                endTime: end,
+              },
+              function (res) {
+                // console.log(res);
+                if (res.data.msg == "该时间段没有数据") {
+                  this.$message({
+                    message: res.data.msg,
+                    type: "warning",
+                  });
+                } else {
+                  res.data.list[0].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    power_data.push(item);
+                  });
+
+                  res.data.list[1].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    x_data.push(item);
+                  });
+                  res.data.list[2].tempList.forEach((item) => {
+                    if (item == "null") {
+                      item = "0";
+                    }
+                    y_data.push(item);
+                  });
+                  res.data.list[0].timeList.forEach((item) => {
+                    time_data.push(item);
+                  });
+                  var myCharts = echarts.init(
+                    document.getElementById("t_echart")
+                  );
+                  var option = {
+                    title: {
+                      text: "无线测温折线图",
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    tooltip: {
+                      // trigger: "axis"
+                      trigger: "item",
+                    },
+                    legend: {
+                      data: ["线夹C相", "线夹B相", "线夹A相"],
+                      selected: {
+                        线夹C相: true,
+                        线夹B相: true,
+                        线夹A相: true,
+                      },
+                      right: 40,
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 16,
+                      },
+                    },
+                    grid: {
+                      left: "3%",
+                      right: "4%",
+                      bottom: "3%",
+                      containLabel: true,
+                    },
+
+                    xAxis: {
+                      type: "category",
+                      boundaryGap: false,
+                      data: time_data,
+                    },
+                    yAxis: {},
+                    series: [
+                      {
+                        name: "线夹C相",
+                        type: "line",
+                        stack: "线夹C相",
+                        data: x_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹B相",
+                        type: "line",
+                        stack: "线夹B相",
+                        data: y_data,
+                        smooth: true,
+                      },
+                      {
+                        name: "线夹A相",
+                        type: "line",
+                        stack: "线夹A相",
+                        data: power_data,
+                        smooth: true,
+                      },
+                    ],
+                  };
+
+                  myCharts.setOption(option);
+                }
+              }
+            );
+          }
+        },
+        getajax(url, data, callback) {
+          $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            success: function (res) {
+              //    console.log(res);
+              callback(res);
+            },
+            dataType: "json",
+          });
+        },
+        getdata() {
+          let start = Date.parse(new Date()) - 36000000;
+          let end = Date.parse(new Date());
+          // console.log(val);
+          let power_data = [];
+          let x_data = [];
+          let y_data = [];
+          let time_data = [];
+          // console.log(123);
+          let that = this;
+          that.getajax(
+            "http://www.cqset.com:3100/api/v1/new/datalist",
+            {
+              towerID: "b80cf0c0-61db-11eb-ab6b-95550a095a03",
+              startTime: start,
+              endTime: end,
+            },
+            function (res) {
+              // console.log(res);
+              if (res.data.msg == "该时间段没有数据") {
+                this.$message({
+                  message: res.data.msg,
+                  type: "warning",
+                });
+              } else {
+                res.data.list[0].tempList.forEach((item) => {
+                  if (item == "null") {
+                    item = "0";
+                  }
+                  power_data.push(item);
+                });
+
+                res.data.list[1].tempList.forEach((item) => {
+                  if (item == "null") {
+                    item = "0";
+                  }
+                  x_data.push(item);
+                });
+                res.data.list[2].tempList.forEach((item) => {
+                  if (item == "null") {
+                    item = "0";
+                  }
+                  y_data.push(item);
+                });
+                res.data.list[0].timeList.forEach((item) => {
+                  time_data.push(item);
+                });
+                var myCharts = echarts.init(
+                  document.getElementById("t_echart")
+                );
+                var option = {
+                  title: {
+                    text: "无线测温折线图",
+                    x: "center",
+                    textStyle: {
+                      //图例文字的样式
+                      color: "#00b1df",
+                      fontSize: 23,
+                    },
+                  },
+                  tooltip: {
+                    // trigger: "axis"
+                    trigger: "item",
+                  },
+                  legend: {
+                    data: ["线夹C相", "线夹B相", "线夹A相"],
+                    selected: {
+                      线夹C相: true,
+                      线夹B相: true,
+                      线夹A相: true,
+                    },
+                    right: 40,
+                    textStyle: {
+                      //图例文字的样式
+                      color: "#fff",
+                      fontSize: 16,
+                    },
+                  },
+                  grid: {
+                    left: "3%",
+                    right: "4%",
+                    bottom: "3%",
+                    containLabel: true,
+                  },
+
+                  xAxis: {
+                    type: "category",
+                    boundaryGap: false,
+                    data: time_data,
+                  },
+                  yAxis: {},
+                  series: [
+                    {
+                      name: "线夹C相",
+                      type: "line",
+                      stack: "线夹C相",
+                      data: x_data,
+                      smooth: true,
+                    },
+                    {
+                      name: "线夹B相",
+                      type: "line",
+                      stack: "线夹B相",
+                      data: y_data,
+                      smooth: true,
+                    },
+                    {
+                      name: "线夹A相",
+                      type: "line",
+                      stack: "线夹A相",
+                      data: power_data,
+                      smooth: true,
+                    },
+                  ],
+                };
+
+                myCharts.setOption(option);
+              }
+            }
+          );
+        },
+        getwarn() {
+          let start =
+            new Date().getFullYear() +
+            "-" +
+            new Date().getMonth() +
+            "-" +
+            new Date().getDate() +
+            " " +
+            "00:00:00";
+          let end =
+            new Date().getFullYear() +
+            "-" +
+            (new Date().getMonth() + 1) +
+            "-" +
+            new Date().getDate() +
+            " " +
+            "00:00:00";
+          // console.log(val);
+          let power_data = [];
+          let time_data = [];
+          let x_data = [];
+          let that = this;
+
+          that.getajax(
+            "http://www.cqset.com:8081/api/v2/temp/sensor_report",
+            {
+              depart_id_alter: "1/",
+              start_time: start,
+              end_time: end,
+            },
+            function (res) {
+              that.getajax(
+                "http://www.cqset.com:8081/api/v2/temp/sensor_report",
+                {
+                  depart_id_alter: "1/",
+                  start_time:
+                    new Date().getFullYear() +
+                    "-" +
+                    (new Date().getMonth() - 1) +
+                    "-" +
+                    new Date().getDate() +
+                    " " +
+                    "00:00:00",
+                  end_time:
+                    new Date().getFullYear() +
+                    "-" +
+                    new Date().getMonth() +
+                    "-" +
+                    new Date().getDate() +
+                    " " +
+                    "00:00:00",
+                },
+                function (res) {
+                  // console.log(res);
+                  if (res.data.length == 0) {
+                    x_data = [];
+                  } else {
+                    res.data.forEach((item) => {
+                      x_data.push(item.warning_num);
+                    });
+                  }
+                  var myCharts = echarts.init(
+                    document.getElementById("t_echar")
+                  );
+                  var optio = {
+                    color: ["#80FFA5", "#00DDFF"],
+                    title: {
+                      text: "历史对比图",
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    tooltip: {
+                      trigger: "axis",
+                    },
+                    legend: {
+                      data: ["上月", "当月"],
+                      selected: { 上月: false, 当月: true },
+                      //   orient: "vertical",
+                      //   x: "right", //可设定图例在左、右、居中
+                      //   y: "top",
+                      right: 40,
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 16,
+                      },
+                    },
+                    xAxis: {
+                      type: "category",
+                      boundaryGap: false,
+                      data: time_data,
+                    },
+                    grid: {
+                      left: "3%",
+                      right: "4%",
+                      bottom: "3%",
+                      containLabel: true,
+                    },
+
+                    yAxis: [
+                      {
+                        type: "value",
+                      },
+                    ],
+                    series: [
+                      {
+                        name: "上月",
+                        type: "line",
+                        stack: "总量",
+                        smooth: true,
+                        lineStyle: {
+                          width: 0,
+                        },
+                        showSymbol: false,
+                        areaStyle: {
+                          opacity: 0.8,
+                          color: new echarts.graphic.LinearGradient(
+                            0,
+                            0,
+                            0,
+                            1,
+                            [
+                              {
+                                offset: 0,
+                                color: "rgba(128, 255, 165)",
+                              },
+                              {
+                                offset: 1,
+                                color: "rgba(1, 191, 236)",
+                              },
+                            ]
+                          ),
+                        },
+                        emphasis: {
+                          focus: "series",
+                        },
+                        data: x_data,
+                      },
+                      {
+                        name: "当月",
+                        type: "line",
+                        stack: "总量",
+                        smooth: true,
+                        lineStyle: {
+                          width: 0,
+                        },
+                        showSymbol: false,
+                        areaStyle: {
+                          opacity: 0.8,
+                          color: new echarts.graphic.LinearGradient(
+                            0,
+                            0,
+                            0,
+                            1,
+                            [
+                              {
+                                offset: 0,
+                                color: "rgba(0, 221, 255)",
+                              },
+                              {
+                                offset: 1,
+                                color: "rgba(77, 119, 255)",
+                              },
+                            ]
+                          ),
+                        },
+                        emphasis: {
+                          focus: "series",
+                        },
+                        data: power_data,
+                      },
+                    ],
+                  };
+                  myCharts.setOption(optio);
+                }
+              );
+              // console.log(res);
+              if (res.data.length == 0) {
+                power_data = [];
+                time_data = [];
+              } else {
+                res.data.forEach((item) => {
+                  power_data.push(item.warning_num);
+                  time_data.push(item.created_at);
+                });
+              }
+            }
+          );
+        },
+        getwarns() {
+          let start =
+            new Date().getFullYear() +
+            "-" +
+            new Date().getMonth() +
+            "-" +
+            new Date().getDate() +
+            " " +
+            "00:00:00";
+          let end =
+            new Date().getFullYear() +
+            "-" +
+            (new Date().getMonth() + 1) +
+            "-" +
+            new Date().getDate() +
+            " " +
+            "00:00:00";
+          // console.log(val);
+          let power_data = [];
+          let time_data = [];
+          let that = this;
+
+          that.getajax(
+            "http://www.cqset.com:8081/api/v2/temp/sensor_report",
+            {
+              depart_id_alter: "1/",
+              start_time: start,
+              end_time: end,
+            },
+            function (res) {
+              if (res.data.length == 0) {
+                power_data = [];
+              } else {
+                res.data.forEach((item) => {
+                  power_data.push(item.warning_num);
+                  time_data.push(item.created_at);
+                });
+              }
+              var myCharts = echarts.init(document.getElementById("t_echarts"));
+              var options = {
+                tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                    // 坐标轴指示器，坐标轴触发有效
+                    type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                  },
+                },
+                title: {
+                  text: "告警统计图",
+                  x: "center",
+                  textStyle: {
+                    //图例文字的样式
+                    color: "#00b1df",
+                    fontSize: 23,
+                  },
+                },
+                grid: {
+                  left: "3%",
+                  right: "4%",
+                  bottom: "1%",
+                  containLabel: true,
+                },
+                xAxis: {
+                  type: "category",
+                  data: time_data,
+                },
+                yAxis: {
+                  type: "value",
+                  show: false,
+                  splitLine: {
+                    //网格线
+                    show: false,
+                  },
+                },
+                series: [
+                  {
+                    data: power_data,
+                    type: "bar",
+                    barWidth: 20,
+                    itemStyle: {
+                      color: "#00b1df",
+                    },
+                    label: {
+                      show: true,
+                      position: "top",
+                      formatter: "{c}条",
+                      textStyle: {
+                        color: "#fff",
+                        fontSize: 12,
+                      },
+                    },
+                  },
+                ],
+              };
+              myCharts.setOption(options);
+            }
+          );
+        },
+        getbar() {
+          let power_data = [];
+          let x_data = [];
+          let that = this;
+          that.getajax(
+            "http://www.cqset.com:8081/api/v2/temp/sensor_analysis",
+            {
+              depart_id_alter: "1/",
+              year: 2021,
+              month: 1,
+            },
+            function (res) {
+              res.data.forEach((item) => {
+                // console.log(item[0]);
+                for (var obj in item) {
+                  // console.log(obj);
+                  x_data.push(obj);
+                  power_data.push(item[obj]);
+                }
+              });
+              var myCharts = echarts.init(document.getElementById("t_echars"));
+              var optionss = {
+                tooltip: {
+                  trigger: "item",
+                },
+                title: {
+                  text: "分析结果图",
+                  x: "center",
+                  textStyle: {
+                    //图例文字的样式
+                    color: "#00b1df",
+                    fontSize: 23,
+                  },
+                },
+                legend: {
+                  left: "30",
+                  bottom: "10",
+                  textStyle: {
+                    //图例文字的样式
+                    color: "#fff",
+                    fontSize: 12,
+                  },
+                },
+                series: [
+                  {
+                    name: "设备比例",
+                    type: "pie",
+                    radius: ["40%", "80%"],
+                    avoidLabelOverlap: false,
+                    label: {
+                      show: false,
+                      position: "center",
+                    },
+                    emphasis: {
+                      label: {
+                        show: true,
+                        fontSize: "20",
+                        fontWeight: "bold",
+                        color: "#fff",
+                      },
+                    },
+                    labelLine: {
+                      show: false,
+                    },
+                    data: [
+                      { value: power_data[0], name: x_data[0] },
+                      { value: power_data[1], name: x_data[1] },
+                      { value: power_data[2], name: x_data[2] },
+                      { value: power_data[3], name: x_data[3] },
+                      { value: power_data[4], name: x_data[4] },
+                      { value: power_data[5], name: x_data[5] },
+                    ],
+                  },
+                ],
+              };
+              myCharts.setOption(optionss);
+            }
+          );
+        },
+        handleNodeClick(datas) {
+          // console.log(datas);
+          let that = this;
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: "",
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: "1568879795240",
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+        },
+        // 得到部门的树形数据
+        getdepart() {
+          let that = this;
+
+          let d = that.getDepartid.substr(2, 2);
+          let data = { pid: +d }; //+隐式转换成number
+
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/dept/tree",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+              let data = [];
+              data.push(res.data);
+              that.departTreeList = data;
+              // console.log(data);
+            },
+          });
+        },
+      },
+      mounted() {
+        this.getbar();
+        this.getdata();
+        this.getdepart();
+        this.getwarn();
+        this.getwarns();
+      },
+    });
+  </script>
+</html>

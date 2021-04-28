@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+
+      .el-tree {
+        background-color: transparent;
+      }
+      .static {
+        display: flex;
+        width: 100%;
+        height: 1000px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+      }
+      .left-department {
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 580px;
+        height: 939px;
+        box-shadow: 0 0 10px #00b1df inset;
+
+        border-radius: 10px;
+        overflow: auto;
+        margin-left: 8px;
+        margin-right: -10px;
+      }
+      .left-department > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        margin-left: 10px;
+        margin-top: 5px;
+        /* text-align: center; */
+      }
+      .right {
+        flex: 3;
+        height: 939px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .right-top {
+        display: flex;
+        height: 479.5px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        justify-content: space-around;
+        /* box-shadow: 2px 2px 12px 2px rgba(164, 198, 236, 0.5) inset; */
+        border-radius: 10px;
+        margin-bottom: 10px;
+      }
+      .peopleStatic {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 695px;
+        height: 100%;
+        box-shadow: 0 0 10px #00b1df inset;
+        border-radius: 10px;
+      }
+      .peopleStatic > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      #people {
+        width: 600px;
+        height: 380px;
+        margin-bottom: -15px;
+      }
+      .warningStatic {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        width: 695px;
+        height: 100%;
+        box-shadow: 0 0 10px #00b1df inset;
+        border-radius: 10px;
+        margin-left: 10px;
+      }
+      .warningStatic > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      #warning {
+        width: 600px;
+        height: 380px;
+      }
+      .right-bottom {
+        display: flex;
+        flex-direction: column;
+        width: 1400px;
+        height: 448px;
+        box-shadow: 0 0 10px #00b1df inset;
+        align-items: center;
+        border-radius: 10px;
+      }
+      .right-bottom > div:nth-of-type(1) {
+        width: 695px;
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+      }
+      .right-bottom > div:nth-of-type(2) {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        justify-content: flex-start;
+      }
+      #department {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        justify-content: center;
+        width: 1370px;
+        height: 360px;
+        overflow: auto;
+      }
+      .work {
+        box-shadow: 0 0 10px #00b1df inset;
+        border-radius: 10px;
+        border: 1px solid #00b1df;
+      }
+      .clock {
+        display: flex;
+        box-sizing: border-box;
+        margin-left: 16px;
+        margin-bottom: 8px;
+      }
+      .clockItem {
+        background-color: #102d46;
+        border: 1px solid #00b1df;
+      }
+      .el-button--primary {
+        background-color: #102d46;
+        margin-left: 6px;
+        border-color: #00b1df;
+      }
+      .el-range-input {
+        background-color: #102d46;
+      }
+      .el-date-editor .el-range-separator {
+        color: #606266;
+      }
+      .el-picker-panel__shortcut {
+        box-sizing: border-box;
+      }
+      .el-table {
+        overflow: auto;
+      }
+      .el-table::before {
+        height: 0px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div style="width: 0.5%"></div>
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 9%">
+          <p style="font-size: 34px; color: #00b1df">抢修任务</p>
+        </div>
+        <div style="margin-left: 36%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div class="static">
+        <div class="left-department">
+          <div></div>
+
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+        <div class="right">
+          <div class="right-top">
+            <div class="peopleStatic">
+              <div>抢修任务工作量</div>
+              <div id="people"></div>
+            </div>
+            <div class="warningStatic">
+              <div>工作量分析</div>
+              <div id="warning"></div>
+            </div>
+          </div>
+          <div class="right-bottom">
+            <div>任务列表详情</div>
+            <div>
+              <div class="clock">
+                <el-date-picker
+                  class="clockItem"
+                  v-model="value"
+                  type="daterange"
+                  unlink-panels
+                  range-separator="至"
+                  value-format="timestamp"
+                  :start-placeholder="pickStartTime"
+                  :end-placeholder="pickEndTime"
+                  :picker-options="pickerOptions"
+                  @change="handleTimeChange"
+                >
+                </el-date-picker>
+                <el-button
+                  type="primary"
+                  icon="el-icon-search"
+                  @click="handleBtn"
+                  >查询</el-button
+                >
+              </div>
+            </div>
+            <div id="department">
+              <el-table :data="tableData" class="work">
+                <el-table-column
+                  prop="depart_name"
+                  label="部门"
+                ></el-table-column>
+                <el-table-column prop="deptId" label="ID"> </el-table-column>
+                <el-table-column prop="time" label="时间"> </el-table-column>
+                <el-table-column prop="address" label="地址"> </el-table-column>
+                <el-table-column prop="work" label="任务"> </el-table-column>
+                <el-table-column prop="description" label="具体描述">
+                </el-table-column>
+                <el-table-column prop="repair_work_status" label="抢修状态">
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        getDepartid: "",
+        departTreeList: [],
+        workList: [],
+        deptName: [],
+        deptNum: [],
+        // deptName: [],
+        // deptNum: [],
+        value: "",
+        //时间选择器配置参数
+        pickerOptions: {
+          shortcuts: [
+            {
+              text: "最近一周",
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 7);
+                picker.$emit("pick", [start, end]);
+              },
+            },
+            {
+              text: "最近一个月",
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 30);
+                picker.$emit("pick", [start, end]);
+              },
+            },
+            {
+              text: "最近三个月",
+              onClick(picker) {
+                const end = new Date();
+                const start = new Date();
+                start.setTime(start.getTime() - 3600 * 1000 * 24 * 90);
+                picker.$emit("pick", [start, end]);
+              },
+            },
+          ],
+        },
+        tableData: [],
+        startTime: "",
+        endTime: "",
+        pickStartTime: "",
+        pickEndTime: "",
+      },
+      created() {
+        this.getDepartID();
+        this.setTime();
+        this.getWorkCompareData();
+        this.getWorkNumData();
+        this.getRepairListData();
+      },
+      mounted() {
+        this.getdepart();
+      },
+      methods: {
+        handleBtn() {
+          this.getRepairListData();
+          this.getWorkNumData();
+          this.getWorkCompareData();
+        },
+        handleTimeChange(val) {
+          this.startTime = val[0];
+          this.endTime = val[1];
+        },
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        //设置时间函数
+        setTime() {
+          Date.prototype.format = function (fmt) {
+            var o = {
+              "M+": this.getMonth() + 1,
+              "d+": this.getDate(),
+              "h+": this.getHours(),
+              "m+": this.getMinutes(),
+              "s+": this.getSeconds(),
+              "q+": Math.floor((this.getMonth() + 3) / 3),
+              S: this.getMilliseconds(),
+            };
+            if (/(y+)/i.test(fmt)) {
+              fmt = fmt.replace(
+                RegExp.$1,
+                (this.getFullYear() + "").substr(4 - RegExp.$1.length)
+              );
+            }
+            for (var k in o) {
+              // ②
+              if (new RegExp("(" + k + ")", "i").test(fmt)) {
+                fmt = fmt.replace(
+                  RegExp.$1,
+                  RegExp.$1.length == 1
+                    ? o[k]
+                    : ("00" + o[k]).substr(("" + o[k]).length)
+                );
+              }
+            }
+            return fmt;
+          };
+          this.pickStartTime = new Date();
+          this.pickEndTime = new Date();
+          this.pickStartTime.setTime(
+            this.pickEndTime.getTime() - 3600 * 1000 * 24 * 7
+          );
+          this.startTime = this.pickStartTime.getTime();
+          this.endTime = this.pickEndTime.getTime();
+          this.pickStartTime = String(this.pickStartTime.format("YYYY-MM-DD"));
+          this.pickEndTime = this.pickEndTime.format("YYYY-MM-DD");
+        },
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        //获取部门的树形数据
+        getdepart() {
+          let that = this;
+
+          let d = that.getDepartid.split("/");
+          let dd = d[d.length - 2];
+          let D = parseInt(dd);
+          let data = { pid: D }; //+隐式转换成number
+
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/dept/tree",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              let data = [];
+              data.push(res.data);
+              that.departTreeList = data;
+            },
+          });
+        },
+        //获取工作量对比分析数据
+        getWorkCompareData() {
+          let _this = this;
+          let data = {
+            depart_id_alter: _this.getDepartid,
+            end: _this.endTime,
+            start: _this.startTime,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/work/repair_status_count",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              _this.workList = [];
+              res.data.forEach((item) => {
+                let num1 = {};
+                let num2 = {};
+                num1.name = "抢修完成";
+                num1.value = item.complete;
+                num2.name = "正在抢修";
+                num2.value = item.doing;
+                _this.workList.push(num1);
+                _this.workList.push(num2);
+              });
+              _this.getWorkCompareStatic();
+            },
+          });
+        },
+        //获取工作量总数数据
+        getWorkNumData() {
+          let _this = this;
+          let data = {
+            depart_id_alter: _this.getDepartid,
+            end: _this.endTime,
+            start: _this.startTime,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/work/repair_workload_count",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              _this.deptNum = [];
+              _this.deptName = [];
+              res.data.forEach((item) => {
+                _this.deptName.push(item.depart_name);
+                _this.deptNum.push(item.num);
+              });
+              _this.getWorkNumStatic();
+            },
+          });
+        },
+        //请求任务列表数据
+        getRepairListData() {
+          let _this = this;
+          let data = {
+            depart_id_alter: _this.getDepartid,
+            end: _this.endTime,
+            start: _this.startTime,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/work/repair_list",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              _this.tableData = [];
+              res.data.forEach((item) => {
+                var num = {};
+                num.depart_name = item.depart_name;
+                num.deptId = item.id;
+                num.time = item.create_time;
+                num.address = item.repair_work_site_more;
+                if (item.repair_work_type == 1) {
+                  num.work = "抢修任务";
+                } else {
+                  num.work = "临时任务"; //1是抢修任务 2是临时任务
+                }
+                num.description = item.specific_description;
+                if (item.repair_work_status == 1) {
+                  num.repair_work_status = "抢修完成";
+                } else {
+                  num.repair_work_status = "正在抢修";
+                }
+                _this.tableData.push(num);
+              });
+            },
+          });
+        },
+        //画工作量总数图
+        getWorkNumStatic() {
+          var myChart = echarts.init(document.getElementById("people"));
+          var option = {
+            title: {
+              text: "抢修任务数量",
+            },
+            tooltip: {},
+            legend: {
+              data: ["总工作量"],
+              textStyle: {
+                color: "#ffffff",
+              },
+            },
+            xAxis: {
+              data: this.deptName,
+            },
+            yAxis: {},
+            series: [
+              {
+                name: "总工作量",
+                type: "bar",
+                data: this.deptNum,
+                barWidth: 50,
+              },
+            ],
+          };
+          myChart.setOption(option);
+        },
+        //画工作量分析图
+        getWorkCompareStatic() {
+          var myChart = echarts.init(document.getElementById("warning"));
+          var option = {
+            title: {
+              text: "工作量分析",
+              left: 80,
+            },
+            tooltip: {
+              trigger: "item",
+            },
+            legend: {
+              top: "5%",
+              left: "center",
+              textStyle: {
+                color: "#fff",
+              },
+            },
+            series: [
+              {
+                name: "报警类型统计",
+                type: "pie",
+                radius: ["40%", "70%"],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                  borderRadius: 10,
+                  borderColor: "#fff",
+                  borderWidth: 2,
+                },
+                label: {
+                  show: false,
+                  position: "center",
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: "40",
+                    fontWeight: "bold",
+                  },
+                },
+                labelLine: {
+                  show: false,
+                },
+                data: this.workList,
+              },
+            ],
+          };
+          myChart.setOption(option);
+        },
+        //处理点击事件
+        handleNodeClick(datas) {
+          let that = this;
+
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: datas.line_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: datas.tower_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+        },
+      },
+    });
+  </script>
+</html>

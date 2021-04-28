@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+
+      .el-tree {
+        background-color: transparent;
+      }
+      .static {
+        display: flex;
+        width: 100%;
+        height: 1000px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: center;
+      }
+      .left-department {
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 580px;
+        height: 939px;
+        box-shadow: 0 0 10px #00b1df inset;
+
+        border-radius: 10px;
+        overflow: auto;
+        margin-left: 8px;
+        margin-right: -10px;
+      }
+      .left-department > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        margin-left: 10px;
+        margin-top: 5px;
+        /* text-align: center; */
+      }
+      .right {
+        flex: 3;
+        height: 939px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .right-top {
+        display: flex;
+        height: 479.5px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: flex-start;
+        justify-content: space-around;
+        /* box-shadow: 2px 2px 12px 2px rgba(164, 198, 236, 0.5) inset; */
+        border-radius: 10px;
+        margin-bottom: 10px;
+      }
+      .peopleStatic {
+        width: 695px;
+        height: 100%;
+        box-shadow: 0 0 10px #00b1df inset;
+
+        border-radius: 10px;
+      }
+      .peopleStatic > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      #people {
+        width: 600px;
+        height: 380px;
+        margin-left: 30px;
+      }
+      .warningStatic {
+        width: 695px;
+        height: 100%;
+        box-shadow: 0 0 10px #00b1df inset;
+
+        border-radius: 10px;
+        margin-left: 10px;
+      }
+      .warningStatic > div:nth-of-type(1) {
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+        margin-bottom: 40px;
+      }
+      #warning {
+        width: 600px;
+        height: 380px;
+      }
+      .right-bottom {
+        display: flex;
+        flex-direction: column;
+        width: 1400px;
+        height: 448px;
+        box-shadow: 0 0 10px #00b1df inset;
+
+        border-radius: 10px;
+      }
+      .right-bottom > div:nth-of-type(1) {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+      }
+      #department {
+        width: 1400px;
+        height: 380px;
+      }
+      .title {
+        width: 600px;
+        font-size: 26px;
+        color: #00b1df;
+        text-align: center;
+        margin-bottom: 35px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div style="width: 0.5%"></div>
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 9%">
+          <p style="font-size: 34px; color: #00b1df">报警分析</p>
+        </div>
+        <div style="margin-left: 36%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div class="static">
+        <div class="left-department">
+          <div></div>
+
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df">
+                <i
+                  ><img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' /></i
+                >{{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+        <div class="right">
+          <div class="right-top">
+            <div class="peopleStatic">
+              <div>人员直方统计图</div>
+              <div id="people"></div>
+            </div>
+            <div class="warningStatic">
+              <div>报警类型统计图</div>
+              <div id="warning"></div>
+            </div>
+          </div>
+          <div class="right-bottom">
+            <div>
+              <div class="title">各部门分析</div>
+              <div style="width: 1200px"></div>
+            </div>
+            <div id="department"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        getDepartid: "",
+        departTreeList: [],
+        warningList: [],
+        peopleName: [],
+        peopleNum: [],
+        deptName: [],
+        deptNum: [],
+      },
+      created() {
+        this.getDepartID();
+        this.getWarningData();
+        this.getPeopleStaticData();
+        this.getDepartmentData();
+      },
+      mounted() {
+        this.getdepart();
+        this.getDepartmentStatic();
+      },
+      methods: {
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        //获取部门的树形数据
+        getdepart() {
+          let that = this;
+
+          let d = that.getDepartid.split("/");
+          let dd = d[d.length - 2];
+          let D = parseInt(dd);
+          let data = { pid: D }; //+隐式转换成number
+
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/dept/tree",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              let data = [];
+              data.push(res.data);
+              that.departTreeList = data;
+            },
+          });
+        },
+        //获取报警接口
+        getWarningData() {
+          let _this = this;
+          let data = { depart_id: _this.getDepartid };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/isc/alarm_count_by_type",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              res.data.forEach((item, index) => {
+                _this.warningList.push({
+                  value: item.num,
+                  name: item.type_name,
+                });
+              });
+              _this.getWarningStatic();
+            },
+          });
+        },
+        //获取人员直方接口
+        getPeopleStaticData() {
+          let _this = this;
+          let data = { depart_id: _this.getDepartid };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/isc/user_alarm_cont",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              res.data.forEach((item, index) => {
+                _this.peopleName.push(item.name);
+
+                _this.peopleNum.push(item.num);
+              });
+              console.log(_this.peopleName);
+              _this.getPeopleStatic();
+            },
+          });
+        },
+        //人直方统计图
+        getDepartmentData() {
+          let _this = this;
+          let data = { depart_id: _this.getDepartid };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/isc/dept_alarm_count",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              res.data.forEach((item, index) => {
+                _this.deptName.push(item.depart_name);
+                _this.deptNum.push(item.alarm_num);
+              });
+              _this.getDepartmentStatic();
+            },
+          });
+        },
+        //画人员直方图
+        getPeopleStatic() {
+          var myChart = echarts.init(document.getElementById("people"));
+          var option = {
+            title: {
+              text: "人员直方图统计图",
+            },
+            tooltip: {},
+            legend: {
+              data: ["数量"],
+              textStyle: {
+                color: "#ffffff",
+              },
+            },
+            xAxis: {
+              data: this.peopleName,
+            },
+            yAxis: {},
+            series: [
+              {
+                name: "数量",
+                type: "bar",
+                data: this.peopleNum,
+              },
+            ],
+          };
+          myChart.setOption(option);
+        },
+        //画报警类型统计图
+        getWarningStatic() {
+          var myChart = echarts.init(document.getElementById("warning"));
+          var option = {
+            title: {
+              text: "报警类型统计图",
+              left: 80,
+            },
+            tooltip: {
+              trigger: "item",
+            },
+            legend: {
+              top: "5%",
+              left: "center",
+              textStyle: {
+                color: "#fff",
+              },
+            },
+            series: [
+              {
+                name: "报警类型统计",
+                type: "pie",
+                radius: ["40%", "70%"],
+                avoidLabelOverlap: false,
+                itemStyle: {
+                  borderRadius: 10,
+                  borderColor: "#fff",
+                  borderWidth: 2,
+                },
+                label: {
+                  show: false,
+                  position: "center",
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: "40",
+                    fontWeight: "bold",
+                  },
+                },
+                labelLine: {
+                  show: false,
+                },
+                data: this.warningList,
+              },
+            ],
+          };
+          myChart.setOption(option);
+        },
+        //画各部门分析统计图
+        getDepartmentStatic() {
+          var myChart = echarts.init(document.getElementById("department"));
+          option = {
+            title: {
+              text: "各部门报警分析",
+              left: 40,
+            },
+            tooltip: { //提示框组件
+                trigger: 'axis',
+                axisPointer: {
+                  type: 'shadow',
+                  label: {
+                    backgroundColor: '#6a7985'
+                  }
+                },
+            },
+            xAxis: {
+              type: "category",
+              data: this.deptName,
+            },
+            yAxis: {
+              type: "value",
+            },
+            series: [
+              {
+                data: this.deptNum,
+                type: "bar",
+                smooth: true,
+                barWidth: 20,
+                label: {//图形上的文本标签
+                          normal: {
+                            show: true,
+                            position: 'top',
+                            // formatter: '100%',
+                            textStyle: {
+                                color: '#a8aab0',
+                                fontStyle: 'normal',
+                                fontFamily: '微软雅黑',
+                                fontSize: 12,   
+                            },
+                          },
+                      },
+              },
+              
+            ],
+          };
+          myChart.setOption(option);
+        },
+        //处理点击事件
+        handleNodeClick(datas) {
+          let that = this;
+
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: datas.line_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: datas.tower_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+        },
+      },
+    });
+  </script>
+</html>

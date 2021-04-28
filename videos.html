@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      .el-message-box {
+        float: right;
+        margin-top: 120px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <div style="display: flex">
+        <div
+          id="time"
+          style="
+            color: #4cafc7;
+            font-size: 26px;
+            margin: 0.3% 10% 0 1%;
+            /* border: 1px solid #4cafc7; */
+            border-radius: 6%;
+          "
+        ></div>
+        <div class="heads"></div>
+        <div class="weather">
+          <span v-cloak>{{type}}</span>
+          <span v-cloak>{{low}}</span>
+          <span v-cloak>{{high}}</span>
+        </div>
+      </div>
+      <div class="videos">
+        <div style="margin-top: 2%; margin-left: 1%; display: flex">
+          <div id="playWinds" style="width: 1450px; height: 600px"></div>
+          <div>
+            <div style="margin-left: 30px" v-if="isc">
+              <div
+                style="
+                  width: 400px;
+                  height: 300px;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 10px #00b1df;
+                "
+              >
+                <p
+                  style="
+                    text-align: center;
+                    font-size: 26px;
+                    color: #00b1df;
+                    box-shadow: 0 0 10px #00b1df;
+                  "
+                >
+                  云台控制
+                </p>
+                <div style="display: flex; margin-top: 10%">
+                  <div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button
+                        style="background-color: #00b1df; color: #fff"
+                        @click="setpreset"
+                        >设置预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button
+                        style="background-color: #00b1df; color: #fff"
+                        @click="movepreset"
+                        >调用预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button
+                        style="background-color: #00b1df; color: #fff"
+                        @click="clearpreset"
+                        >清除预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-dropdown @command="handleCommand" trigger="click">
+                        <el-button
+                          style="background-color: #00b1df; color: #fff"
+                        >
+                          预置点 &nbsp;<i
+                            class="el-icon-arrow-down el-icon--right"
+                          ></i>
+                        </el-button>
+
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item
+                            v-for="(item,i) in presets"
+                            :key="i"
+                            :command="item"
+                            >{{item.presetName}}</el-dropdown-item
+                          >
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="margin-left: 28%">
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('UP')"
+                        @mouseup.native="over('UP')"
+                        ><img src="./img/images/上.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('LEFT')"
+                        @mouseup.native="over('LEFT')"
+                        ><img src="./img/images/左.png" width="70%" alt="" />
+                      </el-button>
+                      <img src="./img/images/圆.png" alt="" />
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('RIGHT')"
+                        @mouseup.native="over('RIGHT')"
+                        ><img src="./img/images/右.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div style="margin-left: 28%">
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('DOWN')"
+                        @mouseup.native="over('DOWN')"
+                        ><img src="./img/images/下.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                  </div>
+                  <div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('ZOOM_IN')"
+                        @mouseup.native="over('ZOOM_IN')"
+                        ><img src="./img/images/放大.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div>
+                      <p
+                        style="
+                          color: #fff;
+                          font-size: 12px;
+                          margin-left: 25%;
+                          margin-top: 21%;
+                          margin-bottom: 21%;
+                        "
+                      >
+                        缩放
+                      </p>
+                    </div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="action('ZOOM_OUT')"
+                        @mouseup.native="over('ZOOM_OUT')"
+                        ><img src="./img/images/缩小.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="wiper(0)"
+                        @mouseup.native="wiper(1)"
+                        ><img src="./img/images/雨刷.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-left: 30px" v-else>
+              <div
+                style="
+                  width: 400px;
+                  height: 300px;
+                  border: 1px solid #00b1df;
+                  box-shadow: 0 0 10px #00b1df;
+                "
+              >
+                <p
+                  style="
+                    text-align: center;
+                    font-size: 26px;
+                    color: #00b1df;
+                    box-shadow: 0 0 10px #00b1df;
+                  "
+                >
+                  云台控制
+                </p>
+                <div style="display: flex; margin-top: 10%">
+                  <div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button style="background-color: #00b1df; color: #fff"
+                        >设置预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button style="background-color: #00b1df; color: #fff"
+                        >调用预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-button style="background-color: #00b1df; color: #fff"
+                        >清除预置点</el-button
+                      >
+                    </div>
+                    <div style="margin-left: 3%; margin-top: 5%">
+                      <el-dropdown>
+                        <el-button
+                          style="background-color: #00b1df; color: #fff"
+                        >
+                          预置点 &nbsp;<i
+                            class="el-icon-arrow-down el-icon--right"
+                          ></i>
+                        </el-button>
+                        <el-dropdown-menu slot="dropdown">
+                          <el-dropdown-item>预置点1</el-dropdown-item>
+                        </el-dropdown-menu>
+                      </el-dropdown>
+                    </div>
+                  </div>
+                  <div>
+                    <div style="margin-left: 28%">
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(0)"
+                        @mouseup.native="stop(0)"
+                        ><img src="./img/images/上.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(2)"
+                        @mouseup.native="stop(2)"
+                        ><img src="./img/images/左.png" width="70%" alt="" />
+                      </el-button>
+                      <img src="./img/images/圆.png" alt="" />
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(3)"
+                        @mouseup.native="stop(3)"
+                        ><img src="./img/images/右.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div style="margin-left: 28%">
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(1)"
+                        @mouseup.native="stop(1)"
+                        ><img src="./img/images/下.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                  </div>
+                  <div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(8)"
+                        @mouseup.native="stop(8)"
+                        ><img src="./img/images/放大.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                    <div>
+                      <p
+                        style="
+                          color: #fff;
+                          font-size: 12px;
+                          margin-left: 25%;
+                          margin-top: 54%;
+                          margin-bottom: 54%;
+                        "
+                      >
+                        缩放
+                      </p>
+                    </div>
+                    <div>
+                      <el-button
+                        type="text"
+                        @mousedown.native="play(9)"
+                        @mouseup.native="stop(9)"
+                        ><img src="./img/images/缩小.png" width="70%" alt="" />
+                      </el-button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              style="
+                width: 400px;
+                height: 300px;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 10px #00b1df;
+                margin-left: 30px;
+              "
+            >
+              <!-- <p style="text-align: center; font-size: 26px; color: #00b1df">
+                统计告警图
+              </p> -->
+              <div id="v_echart" style="height: 300px"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div
+          style="
+            margin-left: 1%;
+            width: 1450px;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 10px #00b1df;
+            height: 355px;
+          "
+        >
+          <p style="text-align: center; font-size: 26px; color: #00b1df">
+            AI告警巡检图
+          </p>
+          <div style="margin-left: 2.5%">
+            <el-carousel
+              :interval="8000"
+              type="card"
+              height="325px"
+              indicator-position="none"
+              v-loading="loading"
+              element-loading-text="拼命加载中"
+              element-loading-spinner="el-icon-loading"
+              element-loading-background="rgba(0, 0, 0, 0.8)"
+            >
+              <!-- <el-carousel-item v-for="(item,i) in indexlist" :key="i">
+                <div v-for="(items,i) in imagelist" :key="i">
+                  <img :src="items" alt="" />
+                </div>
+              </el-carousel-item> -->
+              <el-carousel-item v-for="(item,i) in indexlist" :key="i">
+                <div v-for="(items,i) in item.pic_url_list" :key="i">
+                  <img
+                    :src= "imageurl+items.fileName"
+                    alt="图片"
+                    @click="open(item)"
+                  />
+                </div>
+              </el-carousel-item>
+            </el-carousel>
+          </div>
+        </div>
+        <div
+          style="
+            margin-left: 29px;
+            width: 400px;
+            height: 355px;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 10px #00b1df;
+          "
+        >
+          <!-- <p style="text-align: center; font-size: 26px; color: #00b1df">
+            分析结果图
+          </p> -->
+
+          <div id="v_echarts" style="height: 355px"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/video.js"></script>
+  <script src="./js/EZUIKit-JavaScript/ezuikit.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/jquery-1.12.4.min.js"></script>
+  <script src="./js/jsencrypt.min.js"></script>
+  <script src="./js/jsWebControl-1.0.0.min.js"></script>
+  <script src="./js/clock.js"></script>
+
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        btn: false,
+        accessToken: "",
+        val: {},
+        pubKey: "",
+        oWebControl: null,
+        WebControl: null,
+        initCount: 0,
+        pubKey: "",
+        high: "",
+        low: "",
+        type: "",
+        isc: false,
+        indexlist: [],
+        imagelist: [],
+        loading: true,
+        presets: [],
+        presetIndex: -21,
+        getDepartid: "",
+        imageurl:'http://www.cqset.com:3100/'
+      },
+      created() {
+        this.getDepartID();
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        clearpreset() {
+          if (this.presetIndex == -21) {
+            this.$message({
+              type: "warning",
+              message: "请选择预置点",
+            });
+          } else {
+            let presetIndex = this.presetIndex;
+            let vals = this.val;
+            let that = this;
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/isc/camera/clearPreset",
+              {
+                cameraIndexCode: vals.deviceSerial,
+                presetIndex: presetIndex,
+              },
+              function (res) {
+                // console.log(res);
+                that.presets = res.data.presets;
+              }
+            );
+          }
+        },
+        setpreset() {
+          this.$prompt("请输入预置点名称", "提示", {
+            confirmButtonText: "确定",
+            cancelButtonText: "取消",
+            inputValue: "预置点",
+            inputPattern: /^[a-zA-Z0-9\u4e00-\u9fa5\,/]{0,40000}$/,
+            inputErrorMessage: "设备名称不能为空",
+          })
+            .then(({ value }) => {
+              // console.log(value);
+              let vals = this.val;
+              let that = this;
+              that.getajax(
+                "http://www.cqset.com:3100/api/v1/isc/camera/addPreset",
+                {
+                  presetName: value,
+                  cameraIndexCode: vals.deviceSerial,
+                },
+                function (res) {
+                  // console.log(res);
+                  that.presets = res.data.presets;
+                }
+              );
+            })
+            .catch(() => {
+              this.$message({
+                type: "info",
+                message: "取消输入",
+              });
+            });
+        },
+        movepreset() {
+          if (this.presetIndex == -21) {
+            this.$message({
+              type: "warning",
+              message: "请选择预置点",
+            });
+          } else {
+            let presetIndex = this.presetIndex;
+            let vals = this.val;
+            let that = this;
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/isc/camera/movePreset",
+              {
+                cameraIndexCode: vals.deviceSerial,
+                presetIndex: presetIndex,
+              },
+              function (res) {
+                // console.log(res);
+              }
+            );
+          }
+        },
+        handleCommand(command) {
+          // console.log(command);
+          this.presetIndex = command.presetIndex;
+        },
+        wiper(val) {
+          // console.log(val);
+          let vals = this.val;
+          let that = this;
+          // console.log(vals.deviceSerial);
+          that.getajax(
+            "http://www.cqset.com:3100/api/v1/isc/camera/ptzCtrl",
+            {
+              cameraIndexCode: vals.deviceSerial,
+              action: val,
+              command: "WIPER_SWITCH",
+              speed: 50,
+              presetIndex: -1,
+            },
+            function (res) {
+              // console.log(res);
+            }
+          );
+        },
+        getajax(url, data, callback) {
+          $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            success: function (res) {
+              //    console.log(res);
+              callback(res);
+            },
+            dataType: "json",
+          });
+        },
+        getweather() {
+          let that = this;
+          $.ajax({
+            type: "get",
+            url: "http://wthrcdn.etouch.cn/weather_mini?city=鄂尔多斯",
+            data: {},
+            success: function (data) {
+              let res = JSON.parse(data);
+              // console.log(res.data.forecast[0].type);
+              that.type = res.data.forecast[0].type;
+              that.high = res.data.forecast[0].high.substring(3, 6);
+              that.low = res.data.forecast[0].low.substring(3, 6);
+            },
+          });
+        },
+        play(direction) {
+          let vals = this.val;
+          let that = this;
+          that.getajax(
+            "http://www.cqset.com:3100/api/v2/device/ptz_start",
+            {
+              deviceSerial: vals.deviceSerial,
+              direction: direction,
+              speed: 1,
+            },
+            function (res) {
+              // console.log(res);
+            }
+          );
+        },
+        action(val) {
+          let vals = this.val;
+          let that = this;
+          let data = {
+            cameraIndexCode: vals.deviceSerial,
+            action: false,
+            command: val,
+            speed: 20,
+            presetIndex: 2,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/isc/controling",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+            },
+          });
+        },
+        over(val) {
+          let vals = this.val;
+          let that = this;
+          let data = {
+            cameraIndexCode: vals.deviceSerial,
+            action: true,
+            command: val,
+            speed: 20,
+            presetIndex: 2,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/isc/controling",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+            },
+          });
+        },
+        stop(direction) {
+          let vals = this.val;
+          let that = this;
+          that.getajax(
+            "http://www.cqset.com:3100/api/v2/device/ptz_stop",
+            {
+              deviceSerial: vals.deviceSerial,
+              direction: direction,
+            },
+            function (res) {
+              // console.log(res);
+            }
+          );
+        },
+        initPlugin() {
+          this.oWebControl = new WebControl({
+            szPluginContainer: "playWinds", // 指定容器id
+            iServicePortStart: 15900, // 指定起止端口号，建议使用该值
+            iServicePortEnd: 15909,
+            szClassId: "23BF3B0A-2C56-4D97-9C03-0CB103AA8F11", // 用于IE10使用ActiveX的clsid
+            cbConnectSuccess: () => {
+              // 创建WebControl实例成功
+              this.oWebControl
+                .JS_StartService("window", {
+                  // WebControl实例创建成功后需要启动服务
+                  dllPath: "./VideoPluginConnect.dll", // 值"./VideoPluginConnect.dll"写死
+                })
+                .then(
+                  () => {
+                    // 启动插件服务成功
+                    this.oWebControl.JS_SetWindowControlCallback({
+                      // 设置消息回调
+                      cbIntegrationCallBack: this.cbIntegrationCallBack,
+                    });
+
+                    this.oWebControl
+                      .JS_CreateWnd("playWinds", 1450, 600)
+                      .then(() => {
+                        //JS_CreateWnd创建视频播放窗口，宽高可设定
+                        this.init(); // 创建播放实例成功后初始化
+                      });
+                  },
+                  () => {
+                    // 启动插件服务失败
+                  }
+                );
+            },
+            cbConnectError: () => {
+              // 创建WebControl实例失败
+              this.oWebControl = null;
+              $("#playWinds").html("插件未启动，正在尝试启动，请稍候...");
+              this.WebControl.JS_WakeUp("VideoWebPlugin://"); // 程序未启动时执行error函数，采用wakeup来启动程序
+              this.initCount++;
+              if (this.initCount < 3) {
+                setTimeout(function () {
+                  this.initPlugin();
+                }, 3000);
+              } else {
+                $("#playWinds").html("插件启动失败，请检查插件是否安装！");
+              }
+            },
+            cbConnectClose: (bNormalClose) => {
+              // 异常断开：bNormalClose = false
+              // JS_Disconnect正常断开：bNormalClose = true
+              console.log("cbConnectClose");
+              this.oWebControl = null;
+            },
+          });
+        },
+        setCallbacks() {
+          this.oWebControl.JS_SetWindowControlCallback({
+            cbIntegrationCallBack: this.cbIntegrationCallBack,
+          });
+        },
+        // 推送消息
+        cbIntegrationCallBack(oData) {
+          console.info(
+            "%c海康web插件信息推送=>",
+            "color:#00e676;",
+            oData.responseMsg
+          );
+          /* showCBInfo(JSON.stringify(oData.responseMsg)); */
+        },
+        init() {
+          this.getPubKey(() => {
+            ////////////////////////////////// 请自行修改以下变量值	////////////////////////////////////
+            var appkey = "20133873"; //综合安防管理平台提供的appkey，必填
+            var secret = this.setEncrypt("x1JOExMuwQBTHDJrrKiM"); //综合安防管理平台提供的secret，必填
+            var ip = "219.151.150.212"; //综合安防管理平台IP地址，必填
+            var playMode = 0; //初始播放模式：0-预览，1-回放
+            var port = 2443; //综合安防管理平台端口，若启用HTTPS协议，默认443
+            var snapDir = "D:\\SnapDir"; //抓图存储路径
+            var videoDir = "D:\\VideoDir"; //紧急录像或录像剪辑存储路径
+            var layout = "1x1"; //playMode指定模式的布局
+            var enableHTTPS = 1; //是否启用HTTPS协议与综合安防管理平台交互，这里总是填1
+            var encryptedFields = "secret"; //加密字段，默认加密领域为secret
+            var showToolbar = 1; //是否显示工具栏，0-不显示，非0-显示
+            var showSmart = 1; //是否显示智能信息（如配置移动侦测后画面上的线框），0-不显示，非0-显示
+            var buttonIDs =
+              "0,16,256,257,258,259,260,512,513,514,515,516,517,768,769"; //自定义工具条按钮
+            ////////////////////////////////// 请自行修改以上变量值	////////////////////////////////////
+
+            this.oWebControl
+              .JS_RequestInterface({
+                funcName: "init",
+                argument: JSON.stringify({
+                  appkey: appkey, //API网关提供的appkey
+                  secret: secret, //API网关提供的secret
+                  ip: ip, //API网关IP地址
+                  playMode: playMode, //播放模式（决定显示预览还是回放界面）
+                  port: port, //端口
+                  snapDir: snapDir, //抓图存储路径
+                  videoDir: videoDir, //紧急录像或录像剪辑存储路径
+                  layout: layout, //布局
+                  enableHTTPS: enableHTTPS, //是否启用HTTPS协议
+                  encryptedFields: encryptedFields, //加密字段
+                  showToolbar: showToolbar, //是否显示工具栏
+                  showSmart: showSmart, //是否显示智能信息
+                  buttonIDs: buttonIDs, //自定义工具条按钮
+                }),
+              })
+              .then((oData) => {
+                this.oWebControl.JS_Resize(1450, 600); // 初始化后resize一次，规避firefox下首次显示窗口后插件窗口未与DIV窗口重合问题
+              });
+          });
+        },
+        getPubKey(callback) {
+          this.oWebControl
+            .JS_RequestInterface({
+              funcName: "getRSAPubKey",
+              argument: JSON.stringify({
+                keyLength: 1024,
+              }),
+            })
+            .then((oData) => {
+              // console.log(oData);
+              if (oData.responseMsg.data) {
+                this.pubKey = oData.responseMsg.data;
+                callback();
+              }
+            });
+        },
+        quit() {
+          ipcRenderer.send("destroys");
+        },
+        //RSA加密
+        setEncrypt(value) {
+          var encrypt = new JSEncrypt();
+          encrypt.setPublicKey(this.pubKey);
+          return encrypt.encrypt(value);
+        },
+        //  设置窗口裁剪，当因滚动条滚动导致窗口需要被遮住的情况下需要JS_CuttingPartWindow部分窗口
+        setWndCover() {
+          var iWidth = $(window).width();
+          var iHeight = $(window).height();
+          var oDivRect = $("#playWinds").get(0).getBoundingClientRect();
+
+          var iCoverLeft = oDivRect.left < 0 ? Math.abs(oDivRect.left) : 0;
+          var iCoverTop = oDivRect.top < 0 ? Math.abs(oDivRect.top) : 0;
+          var iCoverRight =
+            oDivRect.right - iWidth > 0
+              ? Math.round(oDivRect.right - iWidth)
+              : 0;
+          var iCoverBottom =
+            oDivRect.bottom - iHeight > 0
+              ? Math.round(oDivRect.bottom - iHeight)
+              : 0;
+
+          iCoverLeft = iCoverLeft > 1450 ? 1450 : iCoverLeft;
+          iCoverTop = iCoverTop > 600 ? 600 : iCoverTop;
+          iCoverRight = iCoverRight > 1450 ? 1450 : iCoverRight;
+          iCoverBottom = iCoverBottom > 600 ? 600 : iCoverBottom;
+
+          this.oWebControl.JS_RepairPartWindow(0, 0, 1451, 600); // 多1个像素点防止还原后边界缺失一个像素条
+          if (iCoverLeft != 0) {
+            this.oWebControl.JS_CuttingPartWindow(0, 0, iCoverLeft, 600);
+          }
+          if (iCoverTop != 0) {
+            this.oWebControl.JS_CuttingPartWindow(0, 0, 1451, iCoverTop); // 多剪掉一个像素条，防止出现剪掉一部分窗口后出现一个像素条
+          }
+          if (iCoverRight != 0) {
+            this.oWebControl.JS_CuttingPartWindow(
+              1450 - iCoverRight,
+              0,
+              iCoverRight,
+              600
+            );
+          }
+          if (iCoverBottom != 0) {
+            this.oWebControl.JS_CuttingPartWindow(
+              0,
+              600 - iCoverBottom,
+              1450,
+              iCoverBottom
+            );
+          }
+        },
+        getimage(val, vals, value, values) {
+          this.getajax(
+            "http://www.cqset.com:3100/api/v1/inspection/inspection_msg",
+            {
+              deviceSerial: val,
+              page: 0,
+              pageSize: 10,
+              type: vals,
+              startTime: value,
+              endTime: values,
+            },
+            function (res) {
+              console.log(res);
+            }
+          );
+        },
+        getdata() {
+          ipcRenderer.on("value", (e, val) => {
+            // document.getElementsByTagName("title")[0].innerText =
+          //  alert(JSON.stringify(val))
+            this.val = val;
+            let vals = this.val;
+
+            // vals.deviceSerial 设备序列号   长度为9的话，表示是萤石的
+            if (vals.deviceSerial.length == 9) {
+            // if (vals.camera_index_code.length == 9) {
+              this.btn = true;
+              this.isc = false;
+              this.$nextTick(() => {
+                this.getajax(
+                  "http://www.cqset.com:3100/api/v2/token/accesstoken-get",
+                  {},
+                  function (res) {
+                    var decoder = new EZUIKit.EZUIPlayer({
+                      id: "playWinds",
+                      autoplay: true,
+                      url:
+                        "ezopen://open.ys7.com/" +
+                        vals.deviceSerial +
+                        "/1.live",
+                      accessToken: res.data.accessToken,
+                      decoderPath: "./js/EZUIKit-JavaScript",
+                      width: 1450,
+                      height: 600,
+                    });
+                  }
+                );
+              });
+            } else {
+              this.initPlugin();
+              this.isc = true;
+            }
+            let that = this;
+            let start = Date.parse(new Date()) - 86400000;
+            let end = Date.parse(new Date());
+            let datass = {
+              // sn: "87db3f390da748ef83b10595eb7b3f5f",
+              sn: vals.deviceSerial,
+                device_type: "ISC",
+                page: 1,
+                size: 10,
+                sort: "desc",
+                start_time: "2021-04-13T20:01:01+08:00",
+                end_time: "2021-04-18T20:01:01+08:00",
+            }
+            $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/device/get_device_log",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(datass),
+            success: function (res) {
+              // console.log(res);
+              if (res.data.length == 0) {
+                that.image = false;
+              } else {
+
+                    that.indexlist = [];
+                    that.presetName = [];
+                    res.data.forEach((item) => {
+                      var created_at = item.created_at.replace("T", " ");
+                      var time = created_at.replace("+08:00", " ");
+                      // that.indexlist.push(time);
+                      var pic_url_list = JSON.parse(item.pic_url_list);
+                      item.pic_url_list = pic_url_list;
+                      item.created_at = time;
+                      that.indexlist.push(item);
+
+                      that.loading = false;
+                });
+              }
+            }
+            // that.getajax(
+            //   // "http://www.cqset.com:3100/api/v1/inspection/inspection_msg",
+            //   "http://www.cqset.com:8081/api/v2/device/get_device_log",
+            //   // {
+            //   //   deviceSerial: vals.deviceSerial,
+            //   //   page: 0,
+            //   //   pageSize: 10,
+            //   //   type: 1,
+            //   //   startTime: start,
+            //   //   endTime: end,
+            //   // },
+            //   function (res) {
+            //     // console.log(res);
+            //     res.data.list.forEach((item) => {
+            //       // console.log(item);
+            //       that.indexlist.push(item);
+            //       item.picUrlList.forEach((items) => {
+            //         that.imagelist.push(items.picUrl);
+            //       });
+            //     });
+                // that.getajax(
+                //   // "http://www.cqset.com:3100/api/v1/inspection/inspection_msg",
+                //   "http://www.cqset.com:8081/api/v2/device/get_device_log",
+
+                //   // {
+                //   //   deviceSerial: '0863aac571e2492ca098c87e4497c0d1',
+                //   //   page: 0,
+                //   //   pageSize: 10,
+                //   //   type: 0,
+                //   //   startTime: start,
+                //   //   endTime: end,
+                //   // },
+                 
+                //   function (res) {
+                //     // console.log(res);
+                //     res.data.list.forEach((item) => {
+                //       // console.log(item);
+                //       that.indexlist.push(item);
+                //       item.picUrlList.forEach((items) => {
+                //         that.imagelist.push(items.picUrl);
+                //       });
+                //     });
+                //   }
+                // );
+                
+              }
+            )
+            that.getajax(
+              "http://www.cqset.com:3100/api/v1/isc/camera/cameraList",
+              {
+                departID: this.getDepartid,
+                headID: 18,
+                footerID: 4,
+                page: 0,
+                pageSize: 200,
+              },
+              function (res) {
+                // console.log(res);
+                res.data.cameraList.forEach((item) => {
+                  if (item.cameraIndexCode == val.deviceSerial) {
+                    that.presets = item.presets;
+                  }
+                });
+              }
+            );
+          });
+        },
+        getbar() {
+          let that = this;
+          let time_data = [];
+          let power_data = [];
+          that.getajax(
+            "http://www.cqset.com:3100/api/v1/account/getAlarmHistoryAccount",
+            {
+              account: "cqset_nm_wh",
+              year: new Date().getFullYear(),
+              month: new Date().getMonth() + 1,
+            },
+            function (res) {
+              // console.log(res);
+              res.data.list.forEach((item) => {
+                time_data.push(item.date);
+                power_data.push(item.count);
+              });
+              var myCharts = echarts.init(document.getElementById("v_echart"));
+              var option = {
+                tooltip: {
+                  trigger: "axis",
+                  axisPointer: {
+                    // 坐标轴指示器，坐标轴触发有效
+                    type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                  },
+                },
+                title: {
+                  text: "告警统计图",
+                  x: "center",
+                  textStyle: {
+                    //图例文字的样式
+                    color: "#00b1df",
+                    fontSize: 23,
+                  },
+                },
+                legend: {
+                  left: "30",
+                  bottom: "10",
+                  textStyle: {
+                    //图例文字的样式
+                    color: "#fff",
+                    fontSize: 12,
+                  },
+                },
+                grid: {
+                  left: "3%",
+                  right: "4%",
+                  bottom: "1%",
+                  containLabel: true,
+                },
+                xAxis: {
+                  type: "category",
+                  data: time_data,
+                  axisLabel: {
+                    textStyle: {
+                      color: "#fff", //坐标值得具体的颜色
+                    },
+                    // rotate: 15,
+                  },
+                },
+                yAxis: {
+                  type: "value",
+                  show: false,
+                  splitLine: {
+                    //网格线
+                    show: false,
+                  },
+                },
+                series: [
+                  {
+                    data: power_data,
+                    type: "bar",
+                    barWidth: 10,
+                    itemStyle: {
+                      color: "#00b1df",
+                    },
+                  },
+                ],
+              };
+              myCharts.setOption(option);
+            }
+          );
+
+          var myCharts = echarts.init(document.getElementById("v_echarts"));
+          var optionss = {
+            tooltip: {
+              trigger: "item",
+            },
+            title: {
+              text: "分析结果图",
+              x: "center",
+              textStyle: {
+                //图例文字的样式
+                color: "#00b1df",
+                fontSize: 23,
+              },
+            },
+            series: [
+              {
+                name: "",
+                type: "pie",
+                radius: ["40%", "60%"],
+                avoidLabelOverlap: false,
+                label: {
+                  show: false,
+                  position: "center",
+                },
+                emphasis: {
+                  label: {
+                    show: true,
+                    fontSize: "20",
+                    fontWeight: "bold",
+                    color: "#fff",
+                  },
+                },
+                labelLine: {
+                  show: false,
+                },
+                data: [
+                  { value: 1, name: "" },
+                  { value: 3, name: "" },
+                  { value: 2, name: "" },
+                  { value: 2, name: "" },
+                  { value: 1, name: "" },
+                  { value: 1, name: "" },
+                ],
+              },
+            ],
+          };
+          myCharts.setOption(optionss);
+        },
+      },
+
+      mounted() {
+        this.getdata();
+        // this.getweather();
+        this.getbar();
+        setTimeout(() => {
+          var cameraIndexCode = this.val.deviceSerial; //获取输入的监控点编号值，必填
+          var streamMode = 0; //主子码流标识：0-主码流，1-子码流
+          var transMode = 1; //传输协议：0-UDP，1-TCP
+          var gpuMode = 0; //是否启用GPU硬解，0-不启用，1-启用
+          var wndId = -1; //播放窗口序号（在2x2以上布局下可指定播放窗口）
+          this.oWebControl.JS_RequestInterface({
+            funcName: "startPreview",
+            argument: JSON.stringify({
+              cameraIndexCode: cameraIndexCode, //监控点编号
+              streamMode: streamMode, //主子码流标识
+              transMode: transMode, //传输协议
+              gpuMode: gpuMode, //是否开启GPU硬解
+              wndId: wndId, //可指定播放窗口
+            }),
+          });
+        }, 3000);
+      },
+    });
+  </script>
+</html>

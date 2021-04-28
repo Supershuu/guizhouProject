@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    
+    <link rel="stylesheet" href="./node_modules/element-ui/lib/theme-chalk/index.css" />
+    <style>
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+      .bgc,
+      .el-tree {
+        background-color: transparent;
+      }
+
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div
+        style="
+          display: flex;
+          background-image: url(./img/background.png);
+          height: 60px;
+        "
+      >
+        <div id="time" style="margin-left: 1.5%"></div>
+        <div class="head" style="margin-left: 10%">
+          <p style="font-size: 34px; color: #01c4f7">布控装置</p>
+        </div>
+        <div style="margin-left: 36%">
+          <el-button @click="back" type="text"
+            ><img src="./img/返 回.png" alt=""
+          /></el-button>
+        </div>
+      </div>
+      <div style="display: flex">
+        <div
+          style="
+            width: 15%;
+            height: 1000px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+            padding-left: 1%;
+            overflow: auto;
+          "
+        >
+        <!-- <p style="font-size: 26px; color: #00b1df; margin-top: 1%">
+          线路信息
+        </p>  -->
+        <p style="font-size: 20px; color: #00b1df; margin-top: 1%">
+          贵州电网公司施工安全管控系统
+        </p>
+          <!-- 线路信息tree列表 -->
+          <el-tree
+            :data="departTreeList"
+            :props="defaultProps"
+            @node-click="handleNodeClick"
+            :default-expand-all="true"
+          >
+            <span class="custom-tree-node" slot-scope="{node,data}">
+              <span style="color: #00b1df" v-cloak>
+                <i>
+                  <img
+                    src="./img/部门.png"
+                    alt=""
+                    v-if='data.node_type == "DEPARTMENT"' />
+                  <img
+                    src="./img/线路.png"
+                    alt=""
+                    v-if='data.node_type == "LINE"' />
+                  <img
+                    src="./img/杆塔.png"
+                    alt=""
+                    v-if='data.node_type == "TOWER"' />
+                  <img
+                    src="./img/设备.png"
+                    alt=""
+                    v-if='data.node_type == "DEVICE"' />
+                </i>
+                {{ data.name }}
+              </span>
+            </span>
+          </el-tree>
+        </div>
+        <div
+          style="
+            width: 81%;
+            height: 1000px;
+            margin-left: 1%;
+            border: 1px solid #00b1df;
+            box-shadow: 0 0 5px #00b1df;
+          "
+        >
+          <p
+            style="
+              text-align: center;
+              font-size: 26px;
+              color: #00b1df;
+              margin-top: 1%;
+              margin-bottom: 1%;
+            "
+          >
+            布控球试用
+          </p>
+          <!-- 视频区域 -->
+          <div
+            style="
+              width: 98%;
+              border: 1px solid #00b1df;
+              box-shadow: 0 0 5px #00b1df;
+              height: 567px;
+              margin-left: 1%;
+            "
+            id="playWinds"
+          >
+            <p
+              v-show="status"
+              style="
+                font-size: 36px;
+                color: #fff;
+                margin-left: 40%;
+                margin-top: 10%;
+              "
+            >
+              该设备不在线
+            </p>
+          </div>
+          <!-- 定时巡检、告警板块 -->
+          <div style="display: flex; width: 100%; margin-top: 2%" v-if="image">
+            <div
+              style="
+                width: 64%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                height: 333px;
+                margin-left: 1%;
+              "
+            >
+              <p style="text-align: center; font-size: 26px; color: #00b1df">
+                定时巡检
+              </p>
+            
+               <!-- 轮播图循环 -->
+              <el-carousel
+              :interval="6000"
+                height="302px"
+                direction="horizontal"
+                indicator-position="none"
+                element-loading-text="拼命加载中"
+                element-loading-spinner="el-icon-loading"
+              element-loading-background="rgba(0, 0, 0, 0.8)"
+              indicator-position="none"
+              type="card"
+              >
+                <!-- <el-carousel-item>
+                  <img src="./img/control/微信图片_20210319144320.jpg" alt="" />
+                </el-carousel-item> -->
+                <el-carousel-item v-for="(item,i) in indexlist" :key="i">
+                  <div v-for="(items,i) in item.pic_url_list" :key="i">
+                    <img
+                      :src= "imageurl+items.fileName"
+                      alt="图片"
+                      @click="open(item)"
+                    />
+                  </div>
+                </el-carousel-item>
+                 
+              </el-carousel>
+            </div>
+            <div
+              style="
+                width: 33%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                height: 333px;
+                margin-left: 1%;
+              "
+            >
+              <p style="text-align: center; font-size: 26px; color: #00b1df">
+                告警
+              </p>
+               <!-- 告警列表循环 -->
+              <el-card class="box-card bgc">
+                <div v-for="(o,i) in presetName" :key="i">
+                  <el-button
+                    @click="open(o)"
+                    type="text"
+                    style="padding: 0"
+                    title="点击跳转到改设备"
+                  >
+                    <div v-cloak>
+                      <i
+                        class="el-icon-warning-outline"
+                        style="color: red"
+                      ></i>
+                      <span
+                        style="
+                          width: 130px;
+                          display: inline-block;
+                          text-align: left;
+                        "
+                        >{{o.name}}</span
+                      >
+                      <span
+                        style="
+                          width: 130px;
+                          display: inline-block;
+                          text-align: left;
+                        "
+                        >{{o.desc}}</span
+                      >
+                      <span
+                        style="
+                          width: 130px;
+                          display: inline-block;
+                          text-align: left;
+                        "
+                        >{{o.time}}</span
+                      >
+                    </div></el-button
+                  >
+                </div>
+              </el-card>
+
+              <!-- <el-card class="box-card"> </el-card> -->
+
+            </div>
+          </div>
+          <div style="display: flex; width: 100%; margin-top: 2%" v-else>
+            <div
+              style="
+                width: 64%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                height: 333px;
+                margin-left: 1%;
+              "
+            >
+              <p style="text-align: center; font-size: 26px; color: #00b1df">
+                定时巡检
+              </p>
+              <p
+                style="
+                  font-size: 36px;
+                  color: #00b1df;
+                  margin-left: 40%;
+                  margin-top: 10%;
+                "
+              >
+                暂无巡检信息
+              </p>
+             
+            </div>
+            <div
+              style="
+                width: 33%;
+                border: 1px solid #00b1df;
+                box-shadow: 0 0 5px #00b1df;
+                height: 333px;
+                margin-left: 1%;
+              "
+            >
+              <p style="text-align: center; font-size: 26px; color: #00b1df">
+                告警
+              </p>
+              <p
+                style="
+                  font-size: 36px;
+                  color: #00b1df;
+                  margin-left: 30%;
+                  margin-top: 20%;
+                "
+              >
+                暂无告警信息
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/clock.js"></script>
+  <script src="./js/jquery-1.12.4.min.js"></script>
+  <script src="./js/jsencrypt.min.js"></script>
+  <script src="./js/jsWebControl-1.0.0.min.js"></script>
+  <script>
+    let electron = require("electron");
+    const { ipcRenderer } = electron;
+    new Vue({
+      el: "#app",
+      data: {
+        data: [],
+        defaultProps: {
+          children: "child",
+          label: "name",
+        },
+        indexlist: [],
+        presetName: [],
+        image: true,
+        status: true,
+        oWebControl: null,
+        WebControl: null,
+        initCount: 0,
+        pubKey: "",
+        imageurl: "http://www.cqset.com:3100/",
+        getDepartid: "",//部门id
+        departTreeList: [],//左侧的树形数据
+        cameraCode:'',
+      },
+      created() {
+        this.getDepartID();//得到登录的部门id
+
+      },
+     
+      mounted() {
+        // let _this = this;
+        this.getdepart();
+        this.getdata();
+        this.getdivicelist();
+        setTimeout(() => {
+          var cameraIndexCode = "87db3f390da748ef83b10595eb7b3f5f"; //获取输入的监控点编号值，必填
+          // var cameraIndexCode = this.cameraCode.deviceSerial; //获取输入的监控点编号值，必填
+          var streamMode = 0; //主子码流标识：0-主码流，1-子码流
+          var transMode = 1; //传输协议：0-UDP，1-TCP
+          var gpuMode = 0; //是否启用GPU硬解，0-不启用，1-启用
+          var wndId = -1; //播放窗口序号（在2x2以上布局下可指定播放窗口）
+          this.oWebControl.JS_RequestInterface({             
+            funcName: "startPreview",
+            argument: JSON.stringify({
+              cameraIndexCode: cameraIndexCode, //监控点编号
+              streamMode: streamMode, //主子码流标识
+              transMode: transMode, //传输协议
+              gpuMode: gpuMode, //是否开启GPU硬解
+              wndId: wndId, //可指定播放窗口
+            }),
+          });
+        }, 2000);
+
+      },
+      methods: {
+        //在localStorage里去取出登陆成功返回的部门ID
+        getDepartID() {
+          this.getDepartid = "";
+          let id = JSON.parse(localStorage.getItem("LoginUser"));
+          this.getDepartid = id.departID;
+        },
+        // startvideo(){
+        //   let that = this
+        //   // console.log(JSON.stringify( that.cameraCode))
+        //   setTimeout(() => {
+        //   var cameraIndexCode = that.cameraCode; //获取输入的监控点编号值，必填
+        //   var streamMode = 0; //主子码流标识：0-主码流，1-子码流
+        //   var transMode = 1; //传输协议：0-UDP，1-TCP
+        //   var gpuMode = 0; //是否启用GPU硬解，0-不启用，1-启用
+        //   var wndId = -1; //播放窗口序号（在2x2以上布局下可指定播放窗口）
+        //   this.oWebControl.JS_RequestInterface({
+        //     funcName: "startPreview",
+        //     argument: JSON.stringify({
+        //       cameraIndexCode: cameraIndexCode, //监控点编号
+        //       streamMode: streamMode, //主子码流标识
+        //       transMode: transMode, //传输协议
+        //       gpuMode: gpuMode, //是否开启GPU硬解
+        //       wndId: wndId, //可指定播放窗口
+        //     }),
+        //   });
+        // }, 2000);
+        // },
+
+        back() {
+          ipcRenderer.send("openindex");
+        },
+        initPlugin() {
+          this.oWebControl = new WebControl({
+            szPluginContainer: "playWinds", // 指定容器id
+            iServicePortStart: 15900, // 指定起止端口号，建议使用该值
+            iServicePortEnd: 15909,
+            szClassId: "23BF3B0A-2C56-4D97-9C03-0CB103AA8F11", // 用于IE10使用ActiveX的clsid
+            cbConnectSuccess: () => {
+              // 创建WebControl实例成功
+              this.oWebControl
+                .JS_StartService("window", {
+                  // WebControl实例创建成功后需要 JS_StartService启动插件服务接口
+                  dllPath: "./VideoPluginConnect.dll", // 值"./VideoPluginConnect.dll"写死
+                })
+                .then(
+                  () => {
+                    // 启动插件服务成功
+                    this.oWebControl.JS_SetWindowControlCallback({
+                      // 设置消息回调
+                      cbIntegrationCallBack: this.cbIntegrationCallBack,
+                    });
+
+                    this.oWebControl
+                      .JS_CreateWnd("playWinds", 1518, 567)
+                      .then(() => {
+                        //JS_CreateWnd创建视频播放窗口，宽高可设定
+                        this.init(); // 创建播放实例成功后初始化
+                      });
+                  },
+                  () => {
+                    // 启动插件服务失败
+                  }
+                );
+            },
+            cbConnectError: () => {
+              // 创建WebControl实例失败
+              this.oWebControl = null;
+              $("#playWinds").html("插件未启动，正在尝试启动，请稍候...");
+              this.WebControl.JS_WakeUp("VideoWebPlugin://"); // 程序未启动时执行error函数，采用wakeup来启动程序
+              this.initCount++;
+              if (this.initCount < 3) {
+                setTimeout(function () {
+                  this.initPlugin();
+                }, 3000);
+              } else {
+                $("#playWinds").html("插件启动失败，请检查插件是否安装！");
+              }
+            },
+            cbConnectClose: (bNormalClose) => {
+              // 异常断开：bNormalClose = false
+              // JS_Disconnect正常断开：bNormalClose = true
+              console.log("cbConnectClose");
+              this.oWebControl = null;
+            },
+          });
+        },
+        setCallbacks() {
+          this.oWebControl.JS_SetWindowControlCallback({
+            cbIntegrationCallBack: this.cbIntegrationCallBack,
+          });
+        },
+        // 推送消息
+        cbIntegrationCallBack(oData) {
+          console.info(
+            "%c海康web插件信息推送=>",
+            "color:#00e676;",
+            oData.responseMsg
+          );
+          /* showCBInfo(JSON.stringify(oData.responseMsg)); */
+        },
+        init() {
+          this.getPubKey(() => {
+            ////////////////////////////////// 请自行修改以下变量值	////////////////////////////////////
+            var appkey = "20133873"; //综合安防管理平台提供的appkey，必填
+            var secret = this.setEncrypt("x1JOExMuwQBTHDJrrKiM"); //综合安防管理平台提供的secret，必填
+            var ip = "219.151.150.212"; //综合安防管理平台IP地址，必填
+            var playMode = 0; //初始播放模式：0-预览，1-回放
+            var port = 2443; //综合安防管理平台端口，若启用HTTPS协议，默认443
+            var snapDir = "D:\\SnapDir"; //抓图存储路径
+            var videoDir = "D:\\VideoDir"; //紧急录像或录像剪辑存储路径
+            var layout = "1x1"; //playMode指定模式的布局
+            var enableHTTPS = 1; //是否启用HTTPS协议与综合安防管理平台交互，这里总是填1
+            var encryptedFields = "secret"; //加密字段，默认加密领域为secret
+            var showToolbar = 1; //是否显示工具栏，0-不显示，非0-显示
+            var showSmart = 1; //是否显示智能信息（如配置移动侦测后画面上的线框），0-不显示，非0-显示
+            var buttonIDs =
+              "0,16,256,257,258,259,260,512,513,514,515,516,517,768,769"; //自定义工具条按钮
+            ////////////////////////////////// 请自行修改以上变量值	////////////////////////////////////
+
+            this.oWebControl
+              .JS_RequestInterface({ //Js_RequestInterface是通用请求接口，用于完成各种功能
+                funcName: "init",
+                argument: JSON.stringify({
+                  appkey: appkey, //API网关提供的appkey
+                  secret: secret, //API网关提供的secret
+                  ip: ip, //API网关IP地址
+                  playMode: playMode, //播放模式（决定显示预览还是回放界面）
+                  port: port, //端口
+                  snapDir: snapDir, //抓图存储路径
+                  videoDir: videoDir, //紧急录像或录像剪辑存储路径
+                  layout: layout, //布局
+                  enableHTTPS: enableHTTPS, //是否启用HTTPS协议
+                  encryptedFields: encryptedFields, //加密字段
+                  showToolbar: showToolbar, //是否显示工具栏
+                  showSmart: showSmart, //是否显示智能信息
+                  buttonIDs: buttonIDs, //自定义工具条按钮
+                }),
+              })
+              .then((oData) => {
+                this.oWebControl.JS_Resize(1518, 567); // 初始化后resize一次，规避firefox下首次显示窗口后插件窗口未与DIV窗口重合问题
+              });
+          });
+        },
+        getPubKey(callback) {
+          this.oWebControl
+            .JS_RequestInterface({
+              funcName: "getRSAPubKey",
+              argument: JSON.stringify({
+                keyLength: 1024,
+              }),
+            })
+            .then((oData) => {
+              // console.log(oData);
+              if (oData.responseMsg.data) {
+                this.pubKey = oData.responseMsg.data;
+                callback();
+              }
+            });
+        },
+        setEncrypt(value) {
+          var encrypt = new JSEncrypt();
+          encrypt.setPublicKey(this.pubKey);
+          return encrypt.encrypt(value);
+        },
+        //  设置窗口裁剪，当因滚动条滚动导致窗口需要被遮住的情况下需要JS_CuttingPartWindow部分窗口
+        setWndCover() {
+          var iWidth = $(window).width();
+          var iHeight = $(window).height();
+          var oDivRect = $("#playWinds").get(0).getBoundingClientRect();
+
+          var iCoverLeft = oDivRect.left < 0 ? Math.abs(oDivRect.left) : 0;
+          var iCoverTop = oDivRect.top < 0 ? Math.abs(oDivRect.top) : 0;
+          var iCoverRight =
+            oDivRect.right - iWidth > 0
+              ? Math.round(oDivRect.right - iWidth)
+              : 0;
+          var iCoverBottom =
+            oDivRect.bottom - iHeight > 0
+              ? Math.round(oDivRect.bottom - iHeight)
+              : 0;
+
+          iCoverLeft = iCoverLeft > 1518 ? 1518 : iCoverLeft;
+          iCoverTop = iCoverTop > 567 ? 567 : iCoverTop;
+          iCoverRight = iCoverRight > 1518 ? 1518 : iCoverRight;
+          iCoverBottom = iCoverBottom > 567 ? 567 : iCoverBottom;
+
+          this.oWebControl.JS_RepairPartWindow(0, 0, 1519, 567); // 多1个像素点防止还原后边界缺失一个像素条
+          if (iCoverLeft != 0) {
+            this.oWebControl.JS_CuttingPartWindow(0, 0, iCoverLeft, 567);
+          }
+          if (iCoverTop != 0) {
+            this.oWebControl.JS_CuttingPartWindow(0, 0, 1519, iCoverTop); // 多剪掉一个像素条，防止出现剪掉一部分窗口后出现一个像素条
+          }
+          if (iCoverRight != 0) {
+            this.oWebControl.JS_CuttingPartWindow(
+              1518 - iCoverRight,
+              0,
+              iCoverRight,
+              567
+            );
+          }
+          if (iCoverBottom != 0) {
+            this.oWebControl.JS_CuttingPartWindow(
+              0,
+              567 - iCoverBottom,
+              1518,
+              iCoverBottom
+            );
+          }
+        },
+        // 得到设备列表
+        getdivicelist() {
+          // this.departID = val.departID;
+          let that = this;
+          that.getajax(
+            "http://www.cqset.com:3100/api/v1/pc/devicelist",
+            {
+              departID: this.getDepartid,
+            },
+            function (res) {
+              // console.log(res);
+              res.data.list.forEach((item) => {
+               
+                if (item.deviceSerial == "87db3f390da748ef83b10595eb7b3f5f") {//
+                  if (item.status == 1) {
+                    that.status = false;
+                    that.initPlugin();
+                  }
+                }
+              });
+            }
+          );
+        },
+        getajax(url, data, callback) {
+          $.ajax({
+            type: "POST",
+            url: url,
+            data: data,
+            success: function (res) {
+              //    console.log(res);
+              callback(res);
+            },
+            dataType: "json",
+          });
+        },
+        // 点击左边设备列表
+        handleNodeClick(datas) {
+          // console.log(datas);
+          let that = this;
+          if (datas.node_type == "DEPARTMENT") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              dept_id: datas.dept_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/line/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "LINE") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              line_id: datas.line_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/towers/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          if (datas.node_type == "TOWER") {
+            let data = {
+              page: 1,
+              size: 100,
+              sort: "desc",
+              keyword: "",
+              tower_id: datas.tower_id,
+            };
+            $.ajax({
+              type: "POST",
+              url: "http://www.cqset.com:8081/api/v2/device/list",
+              contentType: "application/json; charset=utf-8",
+              data: JSON.stringify(data),
+              success: function (res) {
+                datas.child = res.data;
+              },
+            });
+          }
+          
+          if (datas.node_type == "DEVICE") {
+           
+          // that.cameraCode = datas.sn
+          // this.startvideo()
+         
+            // let dataVal = {
+            //     deviceSerial: '87db3f390da748ef83b10595eb7b3f5f',
+            //     deviceName: '安全作业管控系统',
+            //     status: 1
+            //   };  
+          
+            let dataVal = {
+              deviceSerial: datas.sn,
+              deviceName: datas.name,
+              status: 1
+            };
+            //渲染进程  跳到videos.html页面   openvideos在main.js写的
+            ipcRenderer.send("openvideos", dataVal);
+
+          }
+        
+        },
+        
+        //获取
+        getdata() {
+          let that = this;
+          var mounth = new Date().getMonth() + 1;
+          var mounths = "0" + mounth;
+          var date = new Date().getDate() - 2;
+          var date2 = new Date().getDate() + 3;
+         
+          var startTime =
+            new Date().getFullYear() +
+            "-" +
+            mounths +
+            "-" +
+            date +
+            "T" +
+            new Date().getHours() +
+            ":" +
+            "01" +
+            ":" +
+            "01" +
+            "+08:00";
+            var endTime = new Date().getFullYear() + "-" + mounths + "-" + date2 + "T" + new Date().getHours() + ":" +  "01" + ":" +
+            "01" +
+            "+08:00";
+          let data = {
+            // sn: "87db3f390da748ef83b10595eb7b3f5f",
+            sn: "87db3f390da748ef83b10595eb7b3f5f",
+            device_type: "ISC",
+            page: 1,
+            size: 10,
+            sort: "desc",
+            start_time: startTime,
+            end_time: endTime,
+          };
+          $.ajax({
+            type: "POST",
+            url: "http://www.cqset.com:8081/api/v2/device/get_device_log",
+            contentType: "application/json; charset=utf-8",
+            data: JSON.stringify(data),
+            success: function (res) {
+              // console.log(res);
+              if (res.data.length == 0) {
+                that.image = false;
+              } else {
+
+                    that.indexlist = [];
+                    that.presetName = [];
+                    res.data.forEach((item) => {
+                      var created_at = item.created_at.replace("T", " ");
+                      var time = created_at.replace("+08:00", " ");
+                      // that.indexlist.push(time);
+                      var pic_url_list = JSON.parse(item.pic_url_list);
+                      item.pic_url_list = pic_url_list;
+                      item.created_at = time;
+                      that.indexlist.push(item);
+
+                      
+                        item.pic_url_list.forEach((items) => {
+                          if (items.isAlarm == true) {
+                            // name: datas.name,
+                            that.presetName.push({
+                              name: '安全作业管控系统',//    先写死
+                              time: item.created_at,
+                              desc: items.desc,
+                              deviceSerial: item.camera_index_code,
+                            });
+                          }
+                        });
+                });
+              }
+              
+            },
+          });
+        },
+        
+        // 得到左侧部门设备的树形数据
+        getdepart() {
+          let that = this;
+            let d =  that.getDepartid.split('/')
+            let dd = d[d.length-2]
+            let data = { pid: parseInt(dd) };
+              $.ajax({
+                type: "POST",
+                url: "http://www.cqset.com:8081/api/v2/dept/tree",
+                contentType: "application/json; ",
+                data: JSON.stringify(data),
+                success: function (res) {
+                  // console.log(res);
+                  let data = [];
+                  data.push(res.data);
+                  that.departTreeList = data;
+                  // console.log(data);
+                },
+          });
+          // let d = that.getDepartid.substr(2, 2);
+          // let data = { pid: +d }; //隐式转换成number
+          // $.ajax({
+          //   type: "POST",
+          //   url: "http://www.cqset.com:8081/api/v2/dept/tree",
+          //   contentType: "application/json; charset=utf-8",
+          //   data: JSON.stringify(data),
+          //   success: function (res) {
+          //     // console.log(res);
+          //     let data = [];
+          //     data.push(res.data.child[13]);
+          //     that.departTreeList = data;
+
+          //     // console.log(res.data.child[13])
+          //   },
+          
+        },
+      },
+     
+     
+      
+    });
+  </script>
+</html>

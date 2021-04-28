@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <link rel="stylesheet" href="./css/reset.css" />
+    <link rel="stylesheet" href="./css/widgets.css" />
+    <link
+      rel="stylesheet"
+      href="./node_modules/element-ui/lib/theme-chalk/index.css"
+    />
+    <style>
+      /* 防止闪烁 */
+      [v-cloak] {
+        display: none;
+      }
+      .amap-logo {
+        right: 0 !important;
+        left: auto !important;
+        display: none !important;
+      }
+
+      .amap-copyright {
+        right: 70px !important;
+        left: auto !important;
+        opacity: 0 !important;
+      }
+      .amap-marker-label {
+        border: 1px dashed blue;
+      }
+      .custom-info {
+        border: solid 1px silver;
+      }
+      .content-window-card {
+        position: relative;
+        box-shadow: none;
+        bottom: 0;
+        left: 0;
+        width: auto;
+        padding: 0;
+      }
+      div.info-top {
+        background-color: #f9f9f9;
+        border-bottom: 1px solid #cccccc;
+      }
+      div.info-top div {
+        display: inline-block;
+        color: #333333;
+        font-size: 14px;
+        font-weight: bold;
+        line-height: 31px;
+        padding: 0 10px;
+      }
+      div.info-top img {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        transition-duration: 0.25s;
+      }
+
+      div.info-top img:hover {
+        box-shadow: 0px 0px 5px #000;
+      }
+
+      div.info-middle {
+        font-size: 12px;
+        padding: 10px 6px;
+        line-height: 20px;
+      }
+      div.info-bottom {
+        height: 0px;
+        width: 100%;
+        clear: both;
+        text-align: center;
+      }
+
+      div.info-bottom img {
+        position: relative;
+        z-index: 104;
+      }
+
+      *::-webkit-scrollbar {
+        width: 7px;
+        height: 10px;
+        background-color: transparent;
+      } /*定义滚动条高宽及背景 高宽分别对应横竖滚动条的尺寸*/
+
+      *::-webkit-scrollbar-track {
+        background-color: #fff;
+      } /*定义滚动条轨道 内阴影+圆角*/
+
+      *::-webkit-scrollbar-thumb {
+        background-color: #00b1df;
+        border-radius: 6px;
+      } /*定义滑块 内阴影+圆角*/
+
+      .scrollbarHide::-webkit-scrollbar {
+        display: none;
+      }
+      .scrollbarShow::-webkit-scrollbar {
+        display: block;
+      }
+      .button:hover img {
+        /* border: 1px solid #cbcbcb; */
+        background: #00b1df;
+        filter: alpha(Opacity=50);
+        -moz-opacity: 0.5;
+        opacity: 0.5;
+      }
+      .el-tree {
+        background-color: transparent;
+      }
+
+      /* 告警详情展示 背景透明 */
+      .alarm-box>.el-card {
+        background-color: transparent;
+      }
+     
+      .header-top {
+        position: relative;
+      }
+      .btn-right {
+        position: absolute;
+        /* top: 5px; */
+        right: 190px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="app">
+      <div>
+        <div
+          class="header-top"
+          style="
+            display: flex;
+            background-image: url(./img/background.png);
+            height: 60px;
+          "
+        >
+          <p
+            style="
+              margin-left: 38%;
+              vertical-align: middle;
+              font-size: 36px;
+              margin-bottom: 0.5%;
+              margin-top: 0.2%;
+              color: #01c4f7;
+            "
+            v-cloak
+          >
+            {{titleShow}}
+          </p>
+          <div class="btn-right">
+            <el-button type="text" @click="quit">
+              <img src="./img/退出.png" alt="" />
+            </el-button>
+          </div>
+        </div>
+        <div class="top">
+          <div class="top_left">
+            <div style="width: 25%; height: 600px; overflow: auto;border-right: 2px solid #00b1df;" >
+
+              <!-- <div style="margin-left: 28%" class="button">
+                <el-button
+                  @click="full"
+                  size="mini"
+                  type="text"
+                  title="视频监控"
+                  ><img src="./img/监测点对比分析.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">视频监控</p>
+                </el-button>
+              </div> -->
+
+              <!-- <div style="margin-left: 28%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="测温装置"
+                  @click="temperature"
+                  ><img src="./img/测温.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">测温装置</p>
+                </el-button>
+              </div> -->
+
+              <div style="margin-left: 26%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="布控装置"
+                  @click="control"
+                  ><img src="./img/监控.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">布控装置</p>
+                </el-button>
+              </div>
+<!-- 
+              <div style="margin-left: 26%" class="button"  v-if='false'>
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="杆塔监测"
+                  @click="tower"
+                  ><img src="./img/铁塔.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">杆塔监测</p>
+                </el-button>
+              </div> -->
+              <div style="margin-left: 26%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="考试情况"
+                  @click="exam"
+                  ><img src="./img/考试.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">考试情况</p>
+                </el-button>
+              </div>
+
+              <div style="margin-left: 26%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="统计分析"
+                  @click="statistical"
+                  ><img src="./img/ai智能分析.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">统计分析</p>
+                </el-button>
+              </div>
+
+              <div style="margin-left: 28%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="工作计划"
+                  @click="workPlan"
+                  ><img src="./img/螺丝.png" alt="" />
+                </el-button>
+                <p style="font-size: 10px; color: #fff">工作计划</p>
+              </div>
+
+              <div style="margin-left: 28%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="抢修任务分析"
+                  @click="maintain"
+                  ><img src="./img/螺丝.png" alt="" />
+                </el-button>
+                <p style="font-size: 10px; color: #fff">抢修任务</p>
+              </div>
+
+              
+            
+              <!-- <div style="margin-left: 24%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="驱鸟系统"
+                  @click="bird"
+                  ><img src="./img/鸟02.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">驱鸟系统</p>
+                </el-button>
+              </div> -->
+              <!-- <div class="button" style="margin-left: 28%">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="GNSS"
+                  @click="displacement"
+                  ><img src="./img/边坡.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">GNSS</p>
+                </el-button>
+              </div> -->
+
+              <!-- <div style="margin-left: 16%" class="button" v-if='false'>
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="AI智能分析"
+                  @click="ai"
+                  ><img src="./img/ai智能分析.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">AI智能分析</p>
+                </el-button>
+              </div> -->
+
+              <!-- <div class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="线路故障定位系统"
+                  @click="location"
+                  ><img src="./img/故障定位.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">线路故障定位系统</p>
+                </el-button>
+              </div> -->
+
+              <!-- <div style="margin-left: 17%" class="button">
+                <el-button
+                  size="mini"
+                  type="text"
+                  title="无人机巡检"
+                  @click="uva"
+                  ><img src="./img/无人机.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">无人机巡检</p>
+                </el-button>
+              </div> -->
+
+              <!-- <div style="margin-left: 28%" class="button">
+                <el-button size="mini" type="text" title="安全帽" @click="safe"
+                  ><img src="./img/安全帽.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">安全帽</p>
+                </el-button>
+              </div> -->
+
+              <div style="margin-left: 27%" class="button">
+                <el-button size="mini" type="text" title="日志" @click="journal"
+                  ><img src="./img/日志.png" alt="" />
+                  <p style="font-size: 10px; color: #fff">日志</p>
+                </el-button>
+              </div>
+            </div>
+            <!-- 线路信息树状展示 -->
+            <div style="width: 73%; margin-left: 2%; overflow: auto">
+              <p style="font-size: 26px; color: #00b1df">贵州电网公司</p>
+              <el-tree
+                :data="departTreeList"
+                :props="defaultProps"
+                @node-click="handleNodeClick"
+                :default-expand-all="true"
+              >
+                <span class="custom-tree-node" slot-scope="{node,data}">
+                  <span style="color: #00b1df" v-cloak>
+                    <i
+                      ><img
+                        src="./img/部门.png"
+                        alt=""
+                        v-if='data.node_type == "DEPARTMENT"'
+                      />
+                      <img
+                        src="./img/线路.png"
+                        alt=""
+                        v-if='data.node_type == "LINE"'
+                      />
+                      <img
+                        src="./img/杆塔.png"
+                        alt=""
+                        v-if='data.node_type == "TOWER"'
+                      />
+                      <img
+                        src="./img/设备.png"
+                        alt=""
+                        v-if='data.node_type == "DEVICE"'
+                      />
+                    </i>
+                    {{ data.name }}
+                  </span>
+                </span>
+              </el-tree>
+            </div>
+          </div>
+          <div class="top_center">
+            <div id="earth"></div>
+          </div>
+        </div>
+        <div class="middle" style="margin-top: 0.25%">
+          <div style="width: 20%"></div>
+          <div style="width: 60%">
+            <p style="font-size: 22px; color: #00b1df; margin-left: 40%">
+              AI告警巡检图
+            </p>
+          </div>
+          <div style="width: 20%">
+            <p style="font-size: 22px; color: #00b1df; margin-left: 23%">
+              AI告警详情
+            </p>
+          </div>
+        </div>
+        <div class="bottom">
+          <div class="bottom_left">
+            <!-- <p style="font-size: 26px; color: #00b1df; text-align: center">
+              设备统计图
+            </p> -->
+            <div id="echartss"></div>
+          </div>
+          <div style="width: 80%">
+            <div>
+              <div
+                style="
+                  height: 190px;
+                  border-bottom: 1px solid #00b1df;
+                  border-top: 1px solid #00b1df;
+                  display: flex;
+                  width: 100%;
+                "
+              >
+                <div style="width: 70%">
+                  <el-carousel
+                    :interval="8000"
+                    type="card"
+                    height="190px"
+                    indicator-position="none"
+                    v-loading="loading"
+                    element-loading-text="拼命加载中"
+                    element-loading-spinner="el-icon-loading"
+                    element-loading-background="rgba(0, 0, 0, 0.8)"
+                    v-if="image"
+                  >
+                  <!-- 轮播图循环 -->
+                    <el-carousel-item v-for="(item,i) in indexlist" :key="i">
+                      <div v-for="(items,i) in item.picUrlList" :key="i">
+                        <!-- {{items}} -->
+                        <img :src="items.picUrl" alt="" @click="open(item)" />
+                      </div>
+                    </el-carousel-item>
+                  </el-carousel>
+                  <el-carousel
+                    :interval="8000"
+                    type="card"
+                    height="190px"
+                    indicator-position="none"
+                    v-loading="loading"
+                    element-loading-text="拼命加载中"
+                    element-loading-spinner="el-icon-loading"
+                    element-loading-background="rgba(0, 0, 0, 0.8)"
+                    v-else
+                  >
+                  <!-- 轮播图循环 -->
+                    <el-carousel-item v-for="(item,i) in indexlist" :key="i">
+                      <div v-for="(items,i) in item.pic_url_list" :key="i">
+                        <!-- {{items}} -->
+                        <img
+                          :src="imageurl+items.fileName"
+                          alt=""
+                          @click="open(item)"
+                        />
+                      </div>
+                    </el-carousel-item>
+                  </el-carousel>
+                  <!-- <el-dialog :visible.sync="dialogTableVisible" width="70%">
+                  <el-image
+                    :src="src"
+                    alt=""
+                    style="width: 95%"
+                    :preview-src-list="imagelist"
+                  ></el-image>
+                </el-dialog> -->
+                </div>
+                <!-- AI告警详情卡片展示 -->
+                <div
+                class="alarm-box"
+                  style="
+                    height: 190px;
+                    border-left: 1px solid #00b1df;
+                    overflow: auto;
+                    width: 30%;
+                  "
+                >
+                  <el-card
+                    class="box-card"
+                    v-loading="loading"
+                    element-loading-text="拼命加载中"
+                    element-loading-spinner="el-icon-loading"
+                    element-loading-background="rgba(0, 0, 0, 0.8)"
+                    v-if="image"
+                  >
+                    <div v-for="(o,i) in presetName" :key="i">
+                      <el-button
+                        @click="open(o)"
+                        type="text"
+                        style="padding: 0"
+                        title="点击跳转到改设备"
+                      >
+                        <div v-cloak>
+                          <i
+                            class="el-icon-warning-outline"
+                            style="color: red"
+                          ></i>
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.cameraName}}</span
+                          >
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.violators}}</span
+                          >
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.createTime}}</span
+                          >
+                        </div></el-button
+                      >
+                    </div>
+                  </el-card>
+                  <el-card
+                    class="box-card"
+                    v-loading="loading"
+                    element-loading-text="拼命加载中"
+                    element-loading-spinner="el-icon-loading"
+                    element-loading-background="rgba(0, 0, 0, 0.8)"
+                    v-else
+                  >
+                    <div v-for="(o,i) in presetName" :key="i">
+                      <el-button
+                        @click="open(o)"
+                        type="text"
+                        style="padding: 0"
+                        title="点击跳转到改设备"
+                      >
+                        <div v-cloak>
+                          <i
+                            class="el-icon-warning-outline"
+                            style="color: red"
+                          ></i>
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.name}}</span
+                          >
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.desc}}</span
+                          >
+                          <span
+                            style="
+                              width: 130px;
+                              display: inline-block;
+                              text-align: left;
+                            "
+                            >{{o.time}}</span
+                          >
+                        </div></el-button
+                      >
+                    </div>
+                  </el-card>
+                </div>
+              </div>
+              <div style="width: 100%; display: flex; height: 195px">
+                <div style="width: 50%; border-right: 1px solid #00b1df">
+                  <!-- <p
+                  style="
+                    text-align: center;
+                    font-size: 16px;
+                    color: #00b1df;
+                    margin-top: 1%;
+                  "
+                >
+                  在线统计图
+                </p> -->
+                  <div id="echarts"></div>
+                </div>
+                <div style="width: 50%">
+                  <!-- <p style="text-align: center; font-size: 16px; color: #00b1df">
+                  告警统计图
+                </p> -->
+                  <div id="echart"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./js/vue.js"></script>
+  <script src="./js/jquery.min.js"></script>
+  <script src="./js/jquery-1.11.1.js"></script>
+  <script src="./js/index.js"></script>
+  <script src="./js/video.js"></script>
+  <script src="./js/EZUIKit-JavaScript/ezuikit.js"></script>
+  <script src="./js/echarts.min.js"></script>
+  <script src="./js/jquery-1.12.4.min.js"></script>
+  <script src="./js/jsencrypt.min.js"></script>
+  <script src="./js/jsWebControl-1.0.0.min.js"></script>
+  <script
+    type="text/javascript"
+    src="https://webapi.amap.com/maps?v=1.4.15&key=0c3cef4b333aa2918685e4a0d4559f68&plugin=AMap.ToolBar,AMap.Marker,AMap.Driving,AMap.DistrictSearch,AMap.Autocomplete,AMap.PlaceSearch,AMap.Geolocation,AMap.Geocoder,AMap.MapType"
+  ></script>
+  <script>
+        let electron = require("electron");
+        const { ipcRenderer } = electron;
+        new Vue({
+          el: "#app",
+          data: {
+            tableData: [],
+            tableDatas: [],
+            tableDatass: [],
+            dialogTableVisible: false,
+            srcs: "",
+            imglist: [],
+            deviceName: [],
+            true: true,
+            departTreeList: [],
+            defaultProps: {
+              children: "child",
+              label: "name",
+            },
+            imagelist: [],
+            imageurl: "http://www.cqset.com:3100/",
+            presetName: [],
+            src: "",
+            loading: true,
+            indexlist: [],
+            image: true,
+            getDepartid: "",
+            titleShow: "",
+            centerZ: [],
+          },
+          created() {
+            this.getDepartID();
+          },
+          mounted() {
+            this.getdepart();
+            this.getbar();
+            this.getimage();
+            setInterval(() => {
+              this.getimage();
+            }, 300000);
+            // this.getdata();
+            clearInterval(
+              setInterval(() => {
+                this.getimage();
+              }, 300000)
+            );
+            this.getmap();
+          },
+          methods: {
+            //在localStorage里去取出登陆成功返回的部门ID
+            getDepartID() {
+              this.getDepartid = "";
+              this.centerZ = [];
+              let id = JSON.parse(localStorage.getItem("LoginUser"));
+              this.getDepartid = id.departID;
+              // alert(this.getDepartid);
+              switch (this.getDepartid) {
+                case "1/24/":
+                  this.titleShow = "鄂尔多斯智慧输电管理系统";
+                  this.centerZ = [109.452535, 39.929747];
+                  break;
+                case "1/35/":
+                  this.titleShow = "巴彦淖尔电业局管理系统";
+                  this.centerZ = [107.416959, 40.757402];
+                  break;
+                case "1/218/":
+                  this.titleShow = "贵州电网公司施工安全管控系统";
+                  this.centerZ = [106.707410, 26.598194];
+                  break;
+
+                // default:
+                //   break;
+              }
+              // alert(JSON.stringify(this.centerZ));
+            },
+            handleNodeClick(datas) {
+              // console.log(datas);
+              let that = this;
+              if (datas.node_type == "DEPARTMENT") {
+                let data = {
+                  page: 1,
+                  size: 100,
+                  sort: "desc",
+                  keyword: "",
+                  dept_id: datas.dept_id,
+                };
+                $.ajax({
+                  type: "POST",
+                  url: "http://www.cqset.com:8081/api/v2/line/list",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(data),
+                  success: function (res) {
+                    // console.log(res);
+                    datas.child = res.data;
+                  },
+                });
+              }
+              if (datas.node_type == "LINE") {
+                // console.log(datas);
+                let data = {
+                  page: 1,
+                  size: 100,
+                  sort: "desc",
+                  keyword: "",
+                  line_id: datas.line_id,
+                };
+                $.ajax({
+                  type: "POST",
+                  url: "http://www.cqset.com:8081/api/v2/towers/list",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(data),
+                  success: function (res) {
+                    datas.child = res.data;
+                    // console.log(res);
+                  },
+                });
+              }
+              if (datas.node_type == "TOWER") {
+                // console.log(datas);
+                let data = {
+                  page: 1,
+                  size: 100,
+                  sort: "desc",
+                  keyword: "",
+                  tower_id: datas.tower_id,
+                };
+                $.ajax({
+                  type: "POST",
+                  url: "http://www.cqset.com:8081/api/v2/device/list",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(data),
+                  success: function (res) {
+                    // console.log(res);
+                    datas.child = res.data;
+                  },
+                });
+              }
+              if (datas.node_type == "DEVICE") {
+                var mounth = new Date().getMonth() + 1;
+                var mounths = "0" + mounth;
+                var date = new Date().getDate() - 2;
+                var date2 = new Date().getDate() + 3;
+
+                var startTime =
+                  new Date().getFullYear() +
+                  "-" +
+                  mounths +
+                  "-" +
+                  date +
+                  "T" +
+                  new Date().getHours() +
+                  ":" +
+                  "01" +
+                  ":" +
+                  "01" +
+                  "+08:00";
+                var endTime =
+                  new Date().getFullYear() +
+                  "-" +
+                  mounths +
+                  "-" +
+                  date2 +
+                  "T" +
+                  new Date().getHours() +
+                  ":" +
+                  "01" +
+                  ":" +
+                  "01" +
+                  "+08:00";
+               
+                let data = {
+                  sn: datas.sn,
+                  device_type: datas.device_type,
+                  page: 1,
+                  size: 10,
+                  sort: "desc",
+                  start_time: startTime,
+                  end_time: endTime,
+                };
+
+                console.log("startTime:" + data.start_time);
+                console.log("endTime:" + endTime);
+                $.ajax({
+                  type: "POST",
+                  url: "http://www.cqset.com:8081/api/v2/device/get_device_log",
+                  contentType: "application/json; charset=utf-8",
+                  data: JSON.stringify(data),
+                  success: function (res) {
+                    // console.log(res);
+                    let imagelist = [];
+                    that.indexlist = [];
+                    that.presetName = [];
+                    res.data.forEach((item) => {
+                      var created_at = item.created_at.replace("T", " ");
+                      var time = created_at.replace("+08:00", " ");
+                      // that.indexlist.push(time);
+                      var pic_url_list = JSON.parse(item.pic_url_list);
+                      item.pic_url_list = pic_url_list;
+                      item.created_at = time;
+                      that.indexlist.push(item);
+                    
+                      item.pic_url_list.forEach((items) => {
+                        if (items.isAlarm == true) {
+                          that.presetName.push({
+                            name: datas.name,
+                            time: item.created_at,
+                            desc: items.desc,
+                            deviceSerial: item.camera_index_code,
+                          });
+                        }
+                      });
+                    });
+                    that.image = false;
+                    // console.log(that.presetName);
+                  },
+                });
+              }
+            },
+            getimage() {
+              let that = this;
+              let endTime = new Date().getTime();
+              let startTime = new Date().getTime() - 80000000;
+              that.getajax(
+                "http://www.cqset.com:3100/api/v1/device/device_submit",
+                {
+                  departID: this.getDepartid,
+                  headID: "18",
+                  footerID: "5",
+                  page: 0,
+                  pageSize: 10,
+                  type: 1,
+                  startTime: startTime,
+                  endTime: endTime,
+                },
+                function (res) {
+                  // console.log(res);
+                  res.data.list.forEach((item) => {
+                    // console.log(item);
+                    that.indexlist.push(item);
+                    that.presetName.push(item);
+                  });
+                  // alert(JSON.stringify( that.indexlist))  //[]
+                 
+                  that.loading = false;
+                  // that.getajax(
+                  //   "http://www.cqset.com:3100/api/v1/device/device_submit",
+                  //   {
+                  //     departID: this.getDepartid,
+                  //     headID: "18",
+                  //     footerID: "5",
+                  //     page: 0,
+                  //     pageSize: 10,
+                  //     type: 0,
+                  //     startTime: startTime,
+                  //     endTime: endTime,
+                  //   },
+                  //   function (res) {
+                  //     // console.log(res);
+                  //     res.data.list.forEach((item) => {
+                  //       that.indexlist.push(item);
+                  //       that.presetName.push(item);
+                  //       // item.picUrlList.forEach((items) => {
+                  //       //   that.imagelist.push(items.picUrl);
+                  //       //   // console.log(items);
+                  //       // });
+                  //     });
+                  //   }
+                  // );
+                }
+              );
+            },
+            quit() {
+              ipcRenderer.send("destroy");
+            },
+            getajax(url, data, callback) {
+              $.ajax({
+                type: "POST",
+                url: url,
+                data: data,
+                success: function (res) {
+                  //    console.log(res);
+                  callback(res);
+                },
+                dataType: "json",
+              });
+            },
+
+            open(val) {
+            
+              // ipcRenderer.send("openvideos", val);
+            },
+            control() {
+              ipcRenderer.send("opencontrol");
+            },
+            temperature() {
+              ipcRenderer.send("opentemperature");
+            },
+            tower() {
+              ipcRenderer.send("opentower");
+            },
+            displacement() {
+              ipcRenderer.send("opendisplacement");
+            },
+            screw() {
+              ipcRenderer.send("openscrew");
+            },
+            bird() {
+              ipcRenderer.send("openbird");
+            },
+            ai() {
+              ipcRenderer.send("openai");
+            },
+            uva() {
+              ipcRenderer.send("openuva");
+            },
+            location() {
+              ipcRenderer.send("openlocation");
+            },
+            safe() {
+              ipcRenderer.send("opensafe");
+            },
+            // 打开 考试情况 页面
+            exam() {
+              ipcRenderer.send("openexam");
+            },
+            //  打开 统计分析 页面
+            statistical() {
+              ipcRenderer.send("openstatistical");
+            },
+            // 工作计划分析
+            workPlan(){
+              ipcRenderer.send("openWorkPlan")
+            },
+            // 抢修任务分析
+            maintain(){
+              ipcRenderer.send("openMaintain")
+            },
+            
+  
+            getmap() {
+              var map = new AMap.Map("earth", {
+                resizeEnable: true, //是否可以改变大小
+                zoom: 10, //缩放级别
+                center:this.centerZ, //地图显示中心点坐标，如果没有center属性，则会定位到你当前所处的位置
+                viewMode: "2D", //使用2D视图
+              });
+              map.addControl(
+                new AMap.MapType({
+                  defaultType: 0, //0代表默认，1代表卫星
+                })
+              );
+
+
+              let d =  this.getDepartid.split('/')
+              let dd = d[d.length-2]
+              let D = parseInt(dd);
+
+              let data = {
+                page: 1,
+                size: 20,
+                sort: "desc",
+                keyword: "",
+                dept_id: D,
+              };
+              let markers = [];
+              $.ajax({
+                type: "POST",
+                url: "http://www.cqset.com:8081/api/v2/line/list",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data),
+                success: function (res) {
+                  res.data.forEach((item) => {
+                    item.child.forEach((items) => {
+                      markers.push(item.child);
+                    });
+                  });
+                 
+                  var timer = window.setInterval(() => {
+                    // alert(1);
+                    addMarker();
+                    //alert(2);
+                  }, 10000);
+
+                  function addMarker() {
+                    let mar = [];
+                    //AMap.stop
+                    let count11 = 0;
+                    //console.log("addMarker" + markers.length)
+                    markers.forEach((item, i) => {
+                      count11++;
+                      if (count11 < 20) {
+                        item.forEach((items) => {
+                          var marker = new AMap.Marker({
+                            map: map,
+                            position: [items.lon - 0, items.lat - 0], // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+                            resizeEnable: true, // 固定大小的窗口的大小
+                            offset: new AMap.Pixel(-10, -30),
+                            icon: new AMap.Icon({
+                              size: new AMap.Size(35, 40),
+                              image: "./img/铁塔2.png",
+                              imageOffset: new AMap.Pixel(-4, 1),
+                            }),
+                          });
+                          mar.push(marker);
+
+                          //map.add(marker);
+                          //设置标签
+                          marker.setLabel({
+                            offset: new AMap.Pixel(-13, -17), //设置文本标注偏移量
+                            content: items.name, //设置文本标注内容
+                            direction: "right", //设置文本标注方位
+                          });
+                        });
+                      }
+                    });
+                    //map.add()
+
+                    map.add(mar);
+                    clearInterval(timer);
+                  }
+                },
+              });
+            },
+
+
+          
+  
+            getbar() {
+              let data = {
+                depart_id: this.getDepartid,
+              };
+              $.ajax({
+                type: "POST",
+                url: "http://www.cqset.com:8081/api/v2/device/statistics_online",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data),
+                success: function (res) {
+                  // console.log(res);
+                  let num1 = [];
+                  let online = [];
+
+                  let titleName = [
+                    { name: "布控装置" },
+                    { name: "测温装置" },
+                    { name: "驱鸟系统" },
+                    { name: "杆塔监测" },
+                    { name: "螺丝松动" },
+                    { name: "故障定位" },
+                    { name: "隧道监控" },
+                  ];
+                  let titleName1 = [
+                    { name: "GNSS" },
+                    { name: "布控装置" },
+                    { name: "测温装置" },
+                    { name: "驱鸟系统" },
+                    { name: "杆塔监测" },
+                    { name: "螺丝松动" },
+                    { name: "故障定位" },
+                    { name: "隧道监控" },
+                  ];
+
+                  for (var i = 0; i < res.data.length; i++) {
+                    num1.push({
+                      value: res.data[i].num,
+                      name: res.data[i].name,
+                    });
+
+                    online.push({
+                      value: res.data[i].online,
+                      name: res.data[i].name,
+                    });
+                    // online.push(res.data[i].online);
+                  }
+                  // 
+                  if (res.data.length < 2) {
+                    for (var i = 0; i < 8; i++) {
+                      num1.push({
+                        value: 0,
+                        name: titleName1[i].name,
+                      });
+                      online.push({
+                        value: 0,
+                        name: titleName1[i].name,
+                      });
+                    }
+                  } else {
+                    for (var i = res.data.length; i < 8; i++) {
+                      num1.push({
+                        value: 0,
+                        name: titleName[i].name,
+                      });
+                      online.push({
+                        value: 0,
+                        name: titleName1[i].name,
+                      });
+                    }
+                  }
+
+                  console.info(num1);
+                  console.info(online);
+
+                  // console.log(num);
+                  // 设备在线统计图
+                  var myCharts1 = echarts.init(document.getElementById("echarts"));
+                  var option = {
+                    title: {
+                      top: 10,
+                      text: "设备在线图",
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    legend: {
+                      right: "30",
+                      top: "10",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 12,
+                      },
+                    },
+                    tooltip: {
+                      trigger: "axis",
+                      axisPointer: {
+                        // 坐标轴指示器，坐标轴触发有效
+                        type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                      },
+                    },
+                    grid: {
+                      left: "0",
+                      right: "0",
+                      bottom: "1%",
+                      containLabel: true,
+                    },
+                    xAxis: {
+                      type: "category",
+                      data: [
+                        "视频监控",
+                        "GNSS",
+                        "布控装置",
+                        "测温装置",
+                        "驱鸟系统",
+                        "杆塔监测",
+                        "螺丝松动",
+                        "故障定位",
+                        "隧道监控",
+                      ],
+                      axisLabel: {
+                        textStyle: {
+                          color: "#fff", //坐标值得具体的颜色
+                          fontSize: 10,
+                        },
+                        // rotate: 15,
+                      },
+                    },
+                    yAxis: {
+                      type: "value",
+                      show: false,
+                      splitLine: {
+                        //网格线
+                        show: false,
+                      },
+                    },
+                    series: [
+                      {
+                        data: num1,
+                        type: "bar",
+                        name: "总台数",
+                        barWidth: 25,
+                        barGap: 0,
+                        itemStyle: {
+                          normal: {
+                            //这里是重点
+                            color:
+                              //注意，如果颜色太少的话，后面颜色不会自动循环，最好多定义几个颜色
+                              ["#00eacb"],
+                          },
+                        },
+                        label: {
+                          show: true,
+                          position: "top",
+                          formatter: "{c}台",
+                          textStyle: {
+                            color: "#fff",
+                            fontSize: 8,
+                          },
+                        },
+                      },
+                      {
+                        data: online,
+                        type: "bar",
+                        name: "在线台数",
+                        barWidth: 25,
+                        itemStyle: {
+                          normal: {
+                            //这里是重点
+                            color:
+                              //注意，如果颜色太少的话，后面颜色不会自动循环，最好多定义几个颜色
+                              ["#1c68da"],
+                          },
+                        },
+                        label: {
+                          show: true,
+                          position: "top",
+                          formatter: "{c}台",
+                          textStyle: {
+                            color: "#fff",
+                            fontSize: 8,
+                          },
+                        },
+                      },
+                    ],
+                  };
+                  myCharts1.setOption(option);
+
+                  // 左侧设备统计图
+                  var myCharts2 = echarts.init(document.getElementById("echartss"));
+                  // mychart2.showLoading();
+                  var optionss = {
+                    title: {
+                      text: "设备统计图",
+                      top: 15,
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    color: [
+                      "#ff8955",
+                      "#ffd200",
+                      "#00eacb",
+                      "#00b4ff",
+                      "#1c68da",
+                      "#954eff",
+                      "#ff5454",
+                    ],
+
+                    tooltip: {
+                      trigger: "item",
+                    },
+                    legend: {
+                      bottom: "0",
+                      left: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 12,
+                      },
+                    },
+                    series: [
+                      {
+                        name: "设备比例",
+                        type: "pie",
+                        radius: ["40%", "65%"],
+                        label: {
+                          show: false,
+                          position: "center",
+                        },
+                        itemStyle: {
+                          normal: {
+                            label: {
+                              //饼图图形上的文本标签
+                              show: true,
+                              position: "inner", //标签的位置
+                              textStyle: {
+                                fontWeight: 300,
+                                fontSize: 14, //文字的字体大小
+                                color: "#fff",
+                              },
+                              formatter: "{d}%",
+                            },
+
+                            labelLine: {
+                              show: false, //隐藏标示线
+                            },
+                          },
+                        },
+
+                        emphasis: {
+                          label: {
+                            show: true,
+                            fontSize: "20",
+                            fontWeight: "bold",
+                            color: "#fff",
+                          },
+                        },
+                        labelLine: {
+                          show: false,
+                        },
+
+                        data: num1,
+                      },
+                    ],
+                  };
+
+                  myCharts2.setOption(optionss);
+                },
+              });
+              $.ajax({
+                type: "POST",
+                url: "http://www.cqset.com:8081/api/v2/device/statistics_warning",
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify(data),
+                success: function (res) {
+                  // console.log(res);
+                  let num = [];
+                  let online = [];
+                  res.data.forEach((item) => {
+                    num.push(item.warning_num);
+                    online.push(item.clear_num);
+                  });
+                  // console.log(num);
+
+                  var myCharts = echarts.init(document.getElementById("echart"));
+                  var options = {
+                    title: {
+                      text: "告警统计图",
+                      top: 10,
+                      x: "center",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#00b1df",
+                        fontSize: 23,
+                      },
+                    },
+                    legend: {
+                      right: "30",
+                      top: "10",
+                      textStyle: {
+                        //图例文字的样式
+                        color: "#fff",
+                        fontSize: 12,
+                      },
+                    },
+                    tooltip: {
+                      trigger: "axis",
+                      axisPointer: {
+                        // 坐标轴指示器，坐标轴触发有效
+                        type: "shadow", // 默认为直线，可选为：'line' | 'shadow'
+                      },
+                    },
+                    grid: {
+                      left: "0",
+                      right: "0",
+                      bottom: "1%",
+                      containLabel: true,
+                    },
+                    xAxis: {
+                      type: "category",
+                      data: [
+                      "视频监控",
+                    "GNSS",
+                    "布控装置",
+                    "测温装置",
+                    "驱鸟系统",
+                    "杆塔监测",
+                    "螺丝松动",
+                    "故障定位",
+                    "隧道监控",
+                      ],
+                      axisLabel: {
+                        textStyle: {
+                          color: "#fff", //坐标值得具体的颜色
+                          fontSize: 10,
+                        },
+                      },
+                    },
+                    yAxis: {
+                      type: "value",
+                      show: false,
+                      splitLine: {
+                        //网格线
+                        show: false,
+                      },
+                    },
+                    series: [
+                      {
+                        data: num,
+                        type: "bar",
+                        name: "告警条数",
+                        barWidth: 20,
+                        barGap: 0,
+                        itemStyle: {
+                          normal: {
+                            //这里是重点
+                            color: ["#00b4ff"],
+                          },
+                        },
+                        label: {
+                          show: true,
+                          position: "top",
+                          formatter: "{c}条",
+                          textStyle: {
+                            color: "#fff",
+                            fontSize: 10,
+                          },
+                        },
+                      },
+                      {
+                        data: online,
+                        type: "bar",
+                        barWidth: 20,
+                        name: "消缺次数",
+                        itemStyle: {
+                          normal: {
+                            //这里是重点
+                            color: ["#ff5454"],
+                          },
+                        },
+                        label: {
+                          show: true,
+                          position: "top",
+                          formatter: "{c}次",
+                          textStyle: {
+                            color: "#fff",
+                            fontSize: 10,
+                          },
+                        },
+                      },
+                    ],
+                  };
+                  myCharts.setOption(options);
+                },
+              });
+            },
+            getdata() {
+              ipcRenderer.on("data", (e, val) => {
+               
+                this.departID = val.departID;
+                let that = this;
+                that.getajax(
+                  "http://www.cqset.com:3100/api/v1/pc/devicelist",
+                  {
+                    departID: that.departID,
+                  },
+                  function (res) {
+                    that.deviceName = res.data.list;
+                  }
+                );
+              });
+            },
+            full() {
+              ipcRenderer.send("openhome");
+            },
+            journal() {
+              ipcRenderer.send("openjournal");
+            },
+            // 获取部门的线路信息
+            getdepart() {
+              let that = this;
+
+              let d =  that.getDepartid.split('/')
+              let dd = d[d.length-2]
+              let data = { pid: parseInt(dd) };
+            
+              $.ajax({
+                type: "POST",
+                url: "http://www.cqset.com:8081/api/v2/dept/tree",
+                contentType: "application/json; ",
+                data: JSON.stringify(data),
+                success: function (res) {
+                  // console.log(res);
+                  let data = [];
+                  data.push(res.data);
+                  that.departTreeList = data;
+
+                  // console.log(data);
+                },
+              });
+            },
+          },
+        });
+        // getmap();
+        // function getmap() {
+        //   let that = this;
+        //   var map = new AMap.Map("earth", {
+        //     resizeEnable: false, //是否可以改变大小
+        //     zoom: 10, //缩放级别
+        //     center: [106.707410, 26.598194], //地图显示中心点坐标，如果没有center属性，则会定位到你当前所处的位置
+        //     //
+        //     //107.416959,40.757402
+        //     viewMode: "2D", //使用3D视图
+        //   });
+        //   // alert(JSON.stringify(this.centerZ));
+
+        //   map.addControl(
+        //     new AMap.MapType({
+        //       defaultType: 0, //0代表默认，1代表卫星
+        //     })
+        //   );
+        //   let id = JSON.parse(localStorage.getItem("LoginUser"));
+        //   let d = id.departID.substr(2, 2);
+        //   let D = +d;
+
+        //   let data = {
+        //     page: 1,
+        //     size: 20,
+        //     sort: "desc",
+        //     keyword: "",
+        //     dept_id: D,
+        //   };
+        //   // console.info(data);
+        //   let markers = [];
+        //   $.ajax({
+        //     type: "POST",
+        //     url: "http://www.cqset.com:8081/api/v2/line/list",
+        //     contentType: "application/json; charset=utf-8",
+        //     data: JSON.stringify(data),
+        //     success: function (res) {
+        //       res.data.forEach((item) => {
+        //         item.child.forEach((items) => {
+        //           markers.push(item.child);
+        //         });
+        //       });
+        //       //-------点标记
+
+        //       // var timer = window.setInterval(() => {
+        //       addMarker();
+        //       // }, 10000);
+
+        //       function addMarker() {
+        //         let mar = [];
+        //         //AMap.stop
+        //         let count11 = 0;
+        //         markers.forEach((item, i) => {
+        //           count11++;
+        //           if (count11 < 30) {
+        //             item.forEach((items) => {
+        //               var marker = new AMap.Marker({
+        //                 map: map,
+        //                 position: [items.lon - 0, items.lat - 0], // 经纬度对象，也可以是经纬度构成的一维数组[116.39, 39.9]
+        //                 resizeEnable: true, // 固定大小的窗口的大小
+        //                 offset: new AMap.Pixel(-10, -30),
+        //                 icon: new AMap.Icon({
+        //                   size: new AMap.Size(35, 40),
+        //                   image: "./img/铁塔2.png",
+        //                   imageOffset: new AMap.Pixel(-4, 1),
+        //                 }),
+        //               });
+        //               mar.push(marker);
+
+        //               //map.add(marker);
+        //               //设置标签
+        //               marker.setLabel({
+        //                 offset: new AMap.Pixel(-13, -17), //设置文本标注偏移量
+        //                 content: items.name, //设置文本标注内容
+        //                 direction: "right", //设置文本标注方位
+        //               });
+        //             });
+        //           }
+        //         });
+        //         //map.add()
+
+        //         map.add(mar);
+        //         // clearInterval(timer);
+        //       }
+        //     },
+        //   });
+        // }
+  
+  </script>
+</html>
